@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const { toast } = useToast();
@@ -19,12 +20,21 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Supabase login
-    setTimeout(() => {
-      setLoading(false);
-      toast({ title: "Login realizado!", description: "Bem-vindo de volta." });
-      navigate("/participante");
-    }, 1000);
+    
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password: senha,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      toast({ title: "Erro no login", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Login realizado!", description: "Bem-vindo de volta." });
+    navigate("/participante");
   };
 
   return (

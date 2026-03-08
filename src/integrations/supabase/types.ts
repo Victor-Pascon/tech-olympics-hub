@@ -14,16 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance: {
+        Row: {
+          created_at: string
+          data: string | null
+          id: string
+          olympiad_id: string
+          presente: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string | null
+          id?: string
+          olympiad_id: string
+          presente?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string | null
+          id?: string
+          olympiad_id?: string
+          presente?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_olympiad_id_fkey"
+            columns: ["olympiad_id"]
+            isOneToOne: false
+            referencedRelation: "olympiads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      olympiads: {
+        Row: {
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          id: string
+          local: string | null
+          nome: string
+          tipo: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          local?: string | null
+          nome: string
+          tipo?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          local?: string | null
+          nome?: string
+          tipo?: string | null
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          autor_id: string | null
+          conteudo: string | null
+          created_at: string
+          id: string
+          imagem_url: string | null
+          publicado: boolean | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          autor_id?: string | null
+          conteudo?: string | null
+          created_at?: string
+          id?: string
+          imagem_url?: string | null
+          publicado?: boolean | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          autor_id?: string | null
+          conteudo?: string | null
+          created_at?: string
+          id?: string
+          imagem_url?: string | null
+          publicado?: boolean | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          cep: string | null
+          cidade: string | null
+          cpf: string | null
+          created_at: string
+          email: string
+          estado: string | null
+          id: string
+          nome: string
+          numero: string | null
+          rua: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          cep?: string | null
+          cidade?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string
+          estado?: string | null
+          id: string
+          nome?: string
+          numero?: string | null
+          rua?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cep?: string | null
+          cidade?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string
+          estado?: string | null
+          id?: string
+          nome?: string
+          numero?: string | null
+          rua?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_materials: {
+        Row: {
+          arquivo_url: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          olympiad_id: string | null
+          titulo: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          olympiad_id?: string | null
+          titulo: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          olympiad_id?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_materials_olympiad_id_fkey"
+            columns: ["olympiad_id"]
+            isOneToOne: false
+            referencedRelation: "olympiads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workshop_enrollments: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          workshop_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          workshop_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_enrollments_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshops: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          horario: string | null
+          id: string
+          local: string | null
+          nome: string
+          olympiad_id: string
+          professor: string | null
+          vagas: number | null
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          horario?: string | null
+          id?: string
+          local?: string | null
+          nome: string
+          olympiad_id: string
+          professor?: string | null
+          vagas?: number | null
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          horario?: string | null
+          id?: string
+          local?: string | null
+          nome?: string
+          olympiad_id?: string
+          professor?: string | null
+          vagas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshops_olympiad_id_fkey"
+            columns: ["olympiad_id"]
+            isOneToOne: false
+            referencedRelation: "olympiads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +427,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
