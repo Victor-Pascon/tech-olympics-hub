@@ -75,8 +75,8 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80" />
       </section>
 
-      {/* Features */}
-      <section className="py-16">
+      {/* Features / Sobre */}
+      <section className="py-16" id="sobre">
         <div className="container">
           <div className="mx-auto mb-12 max-w-2xl text-center">
             <h2 className="font-display mb-3 text-2xl font-bold tracking-tight lg:text-3xl">

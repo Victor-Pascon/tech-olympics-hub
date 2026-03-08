@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const ESTADOS_BR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -16,6 +17,7 @@ const ESTADOS_BR = [
 
 const Cadastro = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -48,11 +50,35 @@ const Cadastro = () => {
       return;
     }
     setLoading(true);
-    // TODO: Supabase signup
-    setTimeout(() => {
+
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.senha,
+    });
+
+    if (error) {
       setLoading(false);
-      toast({ title: "Cadastro realizado!", description: "Verifique seu e-mail para confirmar." });
-    }, 1500);
+      toast({ title: "Erro no cadastro", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    // Update profile with additional data
+    if (data.user) {
+      await supabase.from("profiles").update({
+        nome: form.nome,
+        cpf: form.cpf,
+        telefone: form.telefone,
+        cep: form.cep,
+        estado: form.estado,
+        cidade: form.cidade,
+        rua: form.rua,
+        numero: form.numero,
+      }).eq("id", data.user.id);
+    }
+
+    setLoading(false);
+    toast({ title: "Cadastro realizado!", description: "Sua conta foi criada com sucesso." });
+    navigate("/participante");
   };
 
   return (
@@ -68,15 +94,15 @@ const Cadastro = () => {
               <CardDescription>Preencha seus dados para participar da Tech Defense</CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {/* Personal */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-primary">Dados Pessoais</h3>
                   <div className="space-y-2">
                     <Label htmlFor="nome">Nome Completo *</Label>
                     <Input id="nome" placeholder="Seu nome completo" value={form.nome} onChange={(e) => update("nome", e.target.value)} required />
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="email">E-mail *</Label>
                       <Input id="email" type="email" placeholder="seu@email.com" value={form.email} onChange={(e) => update("email", e.target.value)} required />
@@ -93,9 +119,9 @@ const Cadastro = () => {
                 </div>
 
                 {/* Address */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-primary">Endereço</h3>
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
                       <Label htmlFor="cep">CEP *</Label>
                       <Input id="cep" placeholder="49500-000" value={form.cep} onChange={(e) => update("cep", e.target.value.replace(/\D/g, "").slice(0, 8))} required />
@@ -114,7 +140,7 @@ const Cadastro = () => {
                       <Input id="cidade" placeholder="Itabaiana" value={form.cidade} onChange={(e) => update("cidade", e.target.value)} required />
                     </div>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-[1fr_100px]">
+                  <div className="grid gap-4 sm:grid-cols-[1fr_100px]">
                     <div className="space-y-2">
                       <Label htmlFor="rua">Rua *</Label>
                       <Input id="rua" placeholder="Rua / Av." value={form.rua} onChange={(e) => update("rua", e.target.value)} required />
@@ -127,9 +153,9 @@ const Cadastro = () => {
                 </div>
 
                 {/* Password */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-primary">Senha de Acesso</h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="senha">Senha *</Label>
                       <div className="relative">
