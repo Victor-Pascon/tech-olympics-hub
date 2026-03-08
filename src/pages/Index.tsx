@@ -107,7 +107,7 @@ const Index = () => {
       </section>
 
       {/* Blog Posts */}
-      <section className="border-t border-border py-16" id="blog">
+      <section className="hero-bg-animated circuit-pattern py-16" id="blog">
         <div className="container">
           <div className="mb-10 flex items-center justify-between">
             <div>
