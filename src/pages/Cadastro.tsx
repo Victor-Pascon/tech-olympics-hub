@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Eye, EyeOff } from "lucide-react";
+import { Shield, Eye, EyeOff, Check, X, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,18 +15,51 @@ const ESTADOS_BR = [
   "PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"
 ];
 
+// ---------- CPF Validation ----------
+function validateCPF(cpf: string): boolean {
+  const nums = cpf.replace(/\D/g, "");
+  if (nums.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(nums)) return false; // all same digits
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(nums[i]) * (10 - i);
+  let rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  if (rest !== parseInt(nums[9])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(nums[i]) * (11 - i);
+  rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  return rest === parseInt(nums[10]);
+}
+
+// ---------- Password requirements ----------
+const passwordChecks = (pwd: string) => [
+  { label: "Mínimo 6 caracteres", ok: pwd.length >= 6 },
+  { label: "Letra minúscula (a-z)", ok: /[a-z]/.test(pwd) },
+  { label: "Letra maiúscula (A-Z)", ok: /[A-Z]/.test(pwd) },
+  { label: "Número (0-9)", ok: /\d/.test(pwd) },
+  { label: "Caractere especial (!@#$...)", ok: /[^A-Za-z0-9]/.test(pwd) },
+];
+
 const Cadastro = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     nome: "", email: "", cpf: "", telefone: "",
     cep: "", estado: "", cidade: "", rua: "", numero: "",
     senha: "", confirmarSenha: "",
   });
 
-  const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
+  const update = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
 
   const formatCPF = (v: string) => {
     const nums = v.replace(/\D/g, "").slice(0, 11);
@@ -39,16 +72,69 @@ const Cadastro = () => {
     return nums.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
   };
 
+  // ---------- CPF blur validation ----------
+  const handleCPFBlur = () => {
+    const nums = form.cpf.replace(/\D/g, "");
+    if (nums.length === 11 && !validateCPF(form.cpf)) {
+      setErrors((prev) => ({ ...prev, cpf: "CPF inválido." }));
+    }
+  };
+
+  // ---------- CEP fetch ----------
+  const formatCEP = (v: string) => {
+    const nums = v.replace(/\D/g, "").slice(0, 8);
+    return nums.replace(/(\d{5})(\d)/, "$1-$2");
+  };
+
+  useEffect(() => {
+    const nums = form.cep.replace(/\D/g, "");
+    if (nums.length !== 8) return;
+
+    const controller = new AbortController();
+    setCepLoading(true);
+    setErrors((prev) => ({ ...prev, cep: "" }));
+
+    fetch(`https://viacep.com.br/ws/${nums}/json/`, { signal: controller.signal })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.erro) {
+          setErrors((prev) => ({ ...prev, cep: "CEP não encontrado." }));
+        } else {
+          setForm((prev) => ({
+            ...prev,
+            estado: data.uf || prev.estado,
+            cidade: data.localidade || prev.cidade,
+            rua: data.logradouro || prev.rua,
+          }));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCepLoading(false));
+
+    return () => controller.abort();
+  }, [form.cep]);
+
+  // ---------- Submit ----------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.senha !== form.confirmarSenha) {
-      toast({ title: "Erro", description: "As senhas não coincidem.", variant: "destructive" });
+    const newErrors: Record<string, string> = {};
+
+    if (!validateCPF(form.cpf)) newErrors.cpf = "CPF inválido.";
+
+    const cepNums = form.cep.replace(/\D/g, "");
+    if (cepNums.length !== 8) newErrors.cep = "CEP deve ter 8 dígitos.";
+
+    const checks = passwordChecks(form.senha);
+    if (checks.some((c) => !c.ok)) newErrors.senha = "A senha não atende todos os requisitos.";
+
+    if (form.senha !== form.confirmarSenha) newErrors.confirmarSenha = "As senhas não coincidem.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast({ title: "Erro", description: "Corrija os campos destacados.", variant: "destructive" });
       return;
     }
-    if (form.senha.length < 6) {
-      toast({ title: "Erro", description: "A senha deve ter pelo menos 6 caracteres.", variant: "destructive" });
-      return;
-    }
+
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
@@ -62,7 +148,6 @@ const Cadastro = () => {
       return;
     }
 
-    // Update profile with additional data
     if (data.user) {
       await supabase.from("profiles").update({
         nome: form.nome,
@@ -80,6 +165,8 @@ const Cadastro = () => {
     toast({ title: "Cadastro realizado!", description: "Sua conta foi criada com sucesso." });
     navigate("/participante");
   };
+
+  const checks = passwordChecks(form.senha);
 
   return (
     <Layout>
@@ -107,9 +194,18 @@ const Cadastro = () => {
                       <Label htmlFor="email">E-mail *</Label>
                       <Input id="email" type="email" placeholder="seu@email.com" value={form.email} onChange={(e) => update("email", e.target.value)} required />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="cpf">CPF *</Label>
-                      <Input id="cpf" placeholder="000.000.000-00" value={form.cpf} onChange={(e) => update("cpf", formatCPF(e.target.value))} required />
+                      <Input
+                        id="cpf"
+                        placeholder="000.000.000-00"
+                        value={form.cpf}
+                        onChange={(e) => update("cpf", formatCPF(e.target.value))}
+                        onBlur={handleCPFBlur}
+                        className={errors.cpf ? "border-destructive focus-visible:ring-destructive" : ""}
+                        required
+                      />
+                      {errors.cpf && <p className="text-xs text-destructive">{errors.cpf}</p>}
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -122,9 +218,20 @@ const Cadastro = () => {
                 <div className="space-y-4">
                   <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-primary">Endereço</h3>
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="cep">CEP *</Label>
-                      <Input id="cep" placeholder="49500-000" value={form.cep} onChange={(e) => update("cep", e.target.value.replace(/\D/g, "").slice(0, 8))} required />
+                      <div className="relative">
+                        <Input
+                          id="cep"
+                          placeholder="49500-000"
+                          value={form.cep}
+                          onChange={(e) => update("cep", formatCEP(e.target.value))}
+                          className={errors.cep ? "border-destructive focus-visible:ring-destructive" : ""}
+                          required
+                        />
+                        {cepLoading && <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />}
+                      </div>
+                      {errors.cep && <p className="text-xs text-destructive">{errors.cep}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="estado">Estado *</Label>
@@ -159,16 +266,48 @@ const Cadastro = () => {
                     <div className="space-y-2">
                       <Label htmlFor="senha">Senha *</Label>
                       <div className="relative">
-                        <Input id="senha" type={showPass ? "text" : "password"} placeholder="Mínimo 6 caracteres" value={form.senha} onChange={(e) => update("senha", e.target.value)} required />
+                        <Input
+                          id="senha"
+                          type={showPass ? "text" : "password"}
+                          placeholder="Crie sua senha"
+                          value={form.senha}
+                          onChange={(e) => update("senha", e.target.value)}
+                          className={errors.senha ? "border-destructive focus-visible:ring-destructive" : ""}
+                          required
+                        />
                         <button type="button" className="absolute right-2 top-2.5 text-muted-foreground" onClick={() => setShowPass(!showPass)}>
                           {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <Label htmlFor="confirmarSenha">Confirmar Senha *</Label>
-                      <Input id="confirmarSenha" type={showPass ? "text" : "password"} placeholder="Repita a senha" value={form.confirmarSenha} onChange={(e) => update("confirmarSenha", e.target.value)} required />
+                      <Input
+                        id="confirmarSenha"
+                        type={showPass ? "text" : "password"}
+                        placeholder="Repita a senha"
+                        value={form.confirmarSenha}
+                        onChange={(e) => update("confirmarSenha", e.target.value)}
+                        className={errors.confirmarSenha ? "border-destructive focus-visible:ring-destructive" : ""}
+                        required
+                      />
+                      {errors.confirmarSenha && <p className="text-xs text-destructive">{errors.confirmarSenha}</p>}
                     </div>
+                  </div>
+
+                  {/* Password requirements checklist */}
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">Requisitos da senha:</p>
+                    {checks.map((c) => (
+                      <div key={c.label} className="flex items-center gap-2 text-xs">
+                        {c.ok ? (
+                          <Check className="h-3.5 w-3.5 text-green-500" />
+                        ) : (
+                          <X className="h-3.5 w-3.5 text-destructive" />
+                        )}
+                        <span className={c.ok ? "text-green-500" : "text-muted-foreground"}>{c.label}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>
