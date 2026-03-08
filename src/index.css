@@ -130,6 +130,28 @@
     background: var(--hero-gradient);
   }
 
+  .hero-bg-animated {
+    background: linear-gradient(
+      -45deg,
+      hsl(220 30% 8%),
+      hsl(210 40% 14%),
+      hsl(152 40% 12%),
+      hsl(220 25% 10%),
+      hsl(175 30% 10%),
+      hsl(210 50% 16%)
+    );
+    background-size: 400% 400%;
+    animation: gradient-shift 12s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 0% 100%; }
+    100% { background-position: 0% 50%; }
+  }
+
   .circuit-pattern {
     background-image: 
       radial-gradient(circle at 25% 25%, hsl(var(--primary) / 0.03) 1px, transparent 1px),

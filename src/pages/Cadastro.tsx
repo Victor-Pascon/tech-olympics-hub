@@ -170,7 +170,7 @@ const Cadastro = () => {
 
   return (
     <Layout>
-      <div className="hero-bg circuit-pattern min-h-screen py-12">
+      <div className="hero-bg-animated circuit-pattern min-h-screen py-12">
         <div className="container max-w-2xl">
           <Card className="card-cyber border-0">
             <CardHeader className="text-center">
