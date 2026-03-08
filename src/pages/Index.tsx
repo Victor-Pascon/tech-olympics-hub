@@ -36,7 +36,7 @@ const Index = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="hero-bg circuit-pattern relative overflow-hidden py-20 lg:py-32">
+      <section className="hero-bg-animated circuit-pattern relative overflow-hidden py-20 lg:py-32">
         <div className="container relative z-10">
           <div className="mx-auto max-w-3xl text-center">
             <div className="mb-6 flex justify-center">
