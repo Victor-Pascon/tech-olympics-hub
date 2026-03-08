@@ -26,6 +26,7 @@ const App = () => (
             <Route path="/cadastro" element={<Cadastro />} />
             <Route path="/login" element={<Login />} />
             <Route path="/participante" element={<ParticipantDashboard />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
