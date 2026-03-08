@@ -78,7 +78,7 @@ const Header = () => {
               </Link>
             </Button>
             <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
-              <Link to="/admin">
+              <Link to="/admin-login">
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
@@ -130,7 +130,7 @@ const Header = () => {
                 </Link>
               </Button>
               <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
-                <Link to="/admin" onClick={() => setMobileOpen(false)}>
+                <Link to="/admin-login" onClick={() => setMobileOpen(false)}>
                   <Settings className="mr-1 h-4 w-4" />
                   Painel Admin
                 </Link>

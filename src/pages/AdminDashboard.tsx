@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +35,35 @@ const mockParticipants = [
 
 const AdminDashboard = () => {
   const { toast } = useToast();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState("dashboard");
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      navigate("/admin-login");
+      return;
+    }
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
+      if (!data) {
+        navigate("/admin-login");
+      } else {
+        setAuthorized(true);
+      }
+    });
+  }, [user, loading, navigate]);
+
+  if (loading || !authorized) {
+    return (
+      <Layout>
+        <div className="hero-bg flex min-h-[calc(100vh-4rem)] items-center justify-center">
+          <p className="font-display text-primary-foreground">Verificando permissões...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout hideFooter>
