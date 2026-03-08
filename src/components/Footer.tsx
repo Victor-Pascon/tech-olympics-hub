@@ -1,0 +1,58 @@
+import { Link } from "react-router-dom";
+import { Mail, MapPin } from "lucide-react";
+
+const Footer = () => {
+  return (
+    <footer className="border-t border-primary/10 bg-cyber-dark">
+      <div className="container py-12">
+        <div className="grid gap-8 md:grid-cols-3">
+          {/* Brand */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <img src="/logos_tech_defense.jpeg" alt="Tech Defense" className="h-10 w-10 rounded-md object-cover" />
+              <span className="font-display text-lg font-bold text-primary-foreground">
+                Tech <span className="text-primary">Defense</span>
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Olimpíada de tecnologia e segurança digital promovida pelo Instituto Federal de Sergipe — Campus Itabaiana.
+            </p>
+          </div>
+
+          {/* Links */}
+          <div className="space-y-3">
+            <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-primary">Links</h4>
+            <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
+              <Link to="/" className="hover:text-primary">Início</Link>
+              <Link to="/cadastro" className="hover:text-primary">Cadastre-se</Link>
+              <Link to="/login" className="hover:text-primary">Área do Participante</Link>
+            </nav>
+          </div>
+
+          {/* Contact */}
+          <div className="space-y-3">
+            <h4 className="font-display text-sm font-semibold uppercase tracking-wider text-primary">Contato</h4>
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                <span>contato@techdefense.edu.br</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                <span>IFS — Campus Itabaiana, SE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 border-t border-primary/10 pt-6 text-center">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Olimpíada Tech Defense — IFS Itabaiana · Apoio: FAPITEC/SE
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
