@@ -78,7 +78,7 @@ const Header = () => {
               </Link>
             </Button>
             <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
-              <Link to="/admin">
+              <Link to="/admin-login">
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
