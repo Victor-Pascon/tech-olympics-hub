@@ -111,8 +111,8 @@ const Index = () => {
         <div className="container">
           <div className="mb-10 flex items-center justify-between">
             <div>
-              <h2 className="font-display text-2xl font-bold tracking-tight lg:text-3xl">Últimas Publicações</h2>
-              <p className="mt-1 text-muted-foreground">Fique por dentro das novidades</p>
+              <h2 className="font-display text-2xl font-bold tracking-tight text-primary-foreground lg:text-3xl">Últimas Publicações</h2>
+              <p className="mt-1 text-primary-foreground/70">Fique por dentro das novidades</p>
             </div>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
