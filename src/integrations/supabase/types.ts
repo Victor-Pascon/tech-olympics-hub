@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          funcao: string[] | null
+          id: string
+          matricula: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          funcao?: string[] | null
+          id?: string
+          matricula?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          funcao?: string[] | null
+          id?: string
+          matricula?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance: {
         Row: {
           created_at: string
@@ -49,15 +81,53 @@ export type Database = {
           },
         ]
       }
+      olympiad_activities: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          olympiad_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          olympiad_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          olympiad_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "olympiad_activities_olympiad_id_fkey"
+            columns: ["olympiad_id"]
+            isOneToOne: false
+            referencedRelation: "olympiads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       olympiads: {
         Row: {
           created_at: string
           data_fim: string | null
           data_inicio: string | null
           descricao: string | null
+          faixa_etaria: string | null
           id: string
+          limite_participantes: number | null
           local: string | null
           nome: string
+          numero_edital: string | null
+          observacoes: string | null
+          responsavel: string | null
+          status: string | null
           tipo: string | null
         }
         Insert: {
@@ -65,9 +135,15 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           descricao?: string | null
+          faixa_etaria?: string | null
           id?: string
+          limite_participantes?: number | null
           local?: string | null
           nome: string
+          numero_edital?: string | null
+          observacoes?: string | null
+          responsavel?: string | null
+          status?: string | null
           tipo?: string | null
         }
         Update: {
@@ -75,9 +151,15 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           descricao?: string | null
+          faixa_etaria?: string | null
           id?: string
+          limite_participantes?: number | null
           local?: string | null
           nome?: string
+          numero_edital?: string | null
+          observacoes?: string | null
+          responsavel?: string | null
+          status?: string | null
           tipo?: string | null
         }
         Relationships: []
@@ -85,33 +167,42 @@ export type Database = {
       posts: {
         Row: {
           autor_id: string | null
+          categoria: string | null
           conteudo: string | null
           created_at: string
           id: string
           imagem_url: string | null
           publicado: boolean | null
+          tags: string | null
           titulo: string
           updated_at: string
+          visualizacoes: number | null
         }
         Insert: {
           autor_id?: string | null
+          categoria?: string | null
           conteudo?: string | null
           created_at?: string
           id?: string
           imagem_url?: string | null
           publicado?: boolean | null
+          tags?: string | null
           titulo: string
           updated_at?: string
+          visualizacoes?: number | null
         }
         Update: {
           autor_id?: string | null
+          categoria?: string | null
           conteudo?: string | null
           created_at?: string
           id?: string
           imagem_url?: string | null
           publicado?: boolean | null
+          tags?: string | null
           titulo?: string
           updated_at?: string
+          visualizacoes?: number | null
         }
         Relationships: []
       }
@@ -249,6 +340,8 @@ export type Database = {
           horario: string | null
           id: string
           local: string | null
+          material_apoio: string | null
+          material_estudo: string | null
           nome: string
           olympiad_id: string
           professor: string | null
@@ -260,6 +353,8 @@ export type Database = {
           horario?: string | null
           id?: string
           local?: string | null
+          material_apoio?: string | null
+          material_estudo?: string | null
           nome: string
           olympiad_id: string
           professor?: string | null
@@ -271,6 +366,8 @@ export type Database = {
           horario?: string | null
           id?: string
           local?: string | null
+          material_apoio?: string | null
+          material_estudo?: string | null
           nome?: string
           olympiad_id?: string
           professor?: string | null
