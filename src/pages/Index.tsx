@@ -41,10 +41,7 @@ const Index = () => {
     }
   };
 
-  const getExcerpt = (content: string | null) => {
-    if (!content) return "";
-    return content.length > 150 ? content.substring(0, 150) + "..." : content;
-  };
+  
 
   const getTags = (tags: string | null): string[] => {
     if (!tags) return [];
