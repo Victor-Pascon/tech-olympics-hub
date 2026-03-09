@@ -180,13 +180,13 @@ const Index = () => {
             <div>
               <h2 className="font-display mb-4 text-2xl font-bold">Localização & Contato</h2>
               <div className="space-y-4 text-muted-foreground">
-                <div className="flex items-start gap-3">
+                <a href="https://maps.app.goo.gl/jWnVo1J8UMN5GVf59" target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 group/link hover:opacity-80 transition-opacity">
                   <MapPin className="mt-0.5 h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-medium text-foreground">Instituto Federal de Sergipe</p>
-                    <p>Campus Itabaiana — Av. Padre Airton Gonçalves Lima, 1140 — São Cristóvão, Itabaiana/SE, 49500-543</p>
+                    <p className="font-medium text-foreground group-hover/link:text-primary transition-colors">Instituto Federal de Sergipe</p>
+                    <p className="group-hover/link:underline">Campus Itabaiana — Av. Padre Airton Gonçalves Lima, 1140 — São Cristóvão, Itabaiana/SE, 49500-543</p>
                   </div>
-                </div>
+                </a>
                 <p>
                   Para dúvidas e informações, entre em contato pelo e-mail{" "}
                   <a href="mailto:contato@techdefense.edu.br" className="text-primary hover:underline">
@@ -198,7 +198,7 @@ const Index = () => {
             <div className="overflow-hidden rounded-lg border border-primary/10 glow-border">
               <iframe
                 title="Localização IFS Itabaiana"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3891.234!2d-37.4308!3d-10.6853!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7ab2b8e6f0e1c7d%3A0x3c5e1a2b4d6f8e0a!2sInstituto+Federal+de+Sergipe+-+Campus+Itabaiana!5e0!3m2!1spt-BR!2sbr!4v1709000000000"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3891.5!2d-37.42536!3d-10.69139!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7ab2bb03b5c1e8d%3A0x5c3e8f7a9b2d4e6c!2sIFS+-+Campus+Itabaiana!5e0!3m2!1spt-BR!2sbr!4v1709000000000"
                 className="h-64 w-full lg:h-80"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
