@@ -130,17 +130,19 @@ const Index = () => {
             </div>
           </div>
           {posts.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mx-auto flex max-w-3xl flex-col gap-8">
               {posts.map((post) => (
-                <Card key={post.id} className="card-premium group overflow-hidden border-0">
-                  <div className="aspect-video overflow-hidden bg-muted/30">
-                    <img
-                      src={post.imagem_url || "/placeholder.svg"}
-                      alt={post.titulo}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  </div>
-                  <CardHeader className="pb-2">
+                <Card key={post.id} className="card-premium overflow-hidden border-0">
+                  {post.imagem_url && (
+                    <div className="aspect-video overflow-hidden bg-muted/30">
+                      <img
+                        src={post.imagem_url}
+                        alt={post.titulo}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <CardHeader className="pb-3">
                     <div className="mb-2 flex flex-wrap gap-2">
                       {getTags(post.tags).map((tag) => (
                         <Badge key={tag} variant="secondary" className="text-xs bg-primary/10 text-primary border border-primary/10">
@@ -151,20 +153,15 @@ const Index = () => {
                         <Badge variant="outline" className="text-xs">{post.categoria}</Badge>
                       )}
                     </div>
-                    <h3 className="font-display text-base font-semibold leading-tight">{post.titulo}</h3>
-                  </CardHeader>
-                  <CardContent className="pb-2">
-                    <p className="text-sm text-muted-foreground line-clamp-2">{getExcerpt(post.conteudo)}</p>
-                  </CardContent>
-                  <CardFooter className="justify-between">
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <h3 className="font-display text-xl font-bold leading-tight lg:text-2xl">{post.titulo}</h3>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground pt-1">
                       <Calendar className="h-3 w-3" />
                       {new Date(post.created_at).toLocaleDateString("pt-BR")}
                     </span>
-                    <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 hover:bg-primary/10">
-                      Ler mais <ArrowRight className="ml-1 h-3 w-3" />
-                    </Button>
-                  </CardFooter>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{post.conteudo}</p>
+                  </CardContent>
                 </Card>
               ))}
             </div>
