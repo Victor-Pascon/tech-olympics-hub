@@ -198,10 +198,11 @@ const Index = () => {
             <div className="overflow-hidden rounded-lg border border-primary/10 glow-border">
               <iframe
                 title="Localização IFS Itabaiana"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3891.5!2d-37.42536!3d-10.69139!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7ab2bb03b5c1e8d%3A0x5c3e8f7a9b2d4e6c!2sIFS+-+Campus+Itabaiana!5e0!3m2!1spt-BR!2sbr!4v1709000000000"
+                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=Instituto+Federal+de+Sergipe+Campus+Itabaiana,Itabaiana,SE,Brasil&zoom=16"
                 className="h-64 w-full lg:h-80"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
               />
             </div>
           </div>
