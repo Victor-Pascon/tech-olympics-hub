@@ -198,7 +198,7 @@ const Index = () => {
             <div className="overflow-hidden rounded-lg border border-primary/10 glow-border">
               <iframe
                 title="Localização IFS Itabaiana"
-                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=Instituto+Federal+de+Sergipe+Campus+Itabaiana,Itabaiana,SE,Brasil&zoom=16"
+                src="https://maps.google.com/maps?q=Instituto+Federal+de+Sergipe+Campus+Itabaiana,+Av.+Padre+Airton+Gon%C3%A7alves+Lima,+1140,+Itabaiana,+SE&t=&z=16&ie=UTF8&iwloc=&output=embed"
                 className="h-64 w-full lg:h-80"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
