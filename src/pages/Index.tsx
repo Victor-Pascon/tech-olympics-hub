@@ -184,7 +184,7 @@ const Index = () => {
                   <MapPin className="mt-0.5 h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium text-foreground">Instituto Federal de Sergipe</p>
-                    <p>Campus Itabaiana — Rod. Jorge Amado, Itabaiana/SE</p>
+                    <p>Campus Itabaiana — Av. Padre Airton Gonçalves Lima, 1140 — São Cristóvão, Itabaiana/SE, 49500-543</p>
                   </div>
                 </div>
                 <p>
@@ -198,7 +198,7 @@ const Index = () => {
             <div className="overflow-hidden rounded-lg border border-primary/10 glow-border">
               <iframe
                 title="Localização IFS Itabaiana"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.123456!2d-37.424!3d-10.684!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQxJzAyLjQiUyAzN8KwMjUnMjYuNCJX!5e0!3m2!1spt-BR!2sbr!4v1234567890"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3891.234!2d-37.4308!3d-10.6853!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7ab2b8e6f0e1c7d%3A0x3c5e1a2b4d6f8e0a!2sInstituto+Federal+de+Sergipe+-+Campus+Itabaiana!5e0!3m2!1spt-BR!2sbr!4v1709000000000"
                 className="h-64 w-full lg:h-80"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
