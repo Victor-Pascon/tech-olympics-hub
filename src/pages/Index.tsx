@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, UserPlus, Calendar, MapPin, ArrowRight, BookOpen, Trophy } from "lucide-react";
+import { Shield, UserPlus, Calendar, MapPin, BookOpen, Trophy } from "lucide-react";
 
 type Post = {
   id: string; titulo: string; conteudo: string | null; imagem_url: string | null;
