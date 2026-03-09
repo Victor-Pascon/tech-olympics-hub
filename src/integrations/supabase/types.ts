@@ -84,24 +84,39 @@ export type Database = {
       olympiad_activities: {
         Row: {
           created_at: string
+          data_atividade: string | null
           descricao: string | null
+          horario: string | null
           id: string
+          limite_vagas: number | null
+          local_sala: string | null
           nome: string
           olympiad_id: string
+          responsavel: string | null
         }
         Insert: {
           created_at?: string
+          data_atividade?: string | null
           descricao?: string | null
+          horario?: string | null
           id?: string
+          limite_vagas?: number | null
+          local_sala?: string | null
           nome: string
           olympiad_id: string
+          responsavel?: string | null
         }
         Update: {
           created_at?: string
+          data_atividade?: string | null
           descricao?: string | null
+          horario?: string | null
           id?: string
+          limite_vagas?: number | null
+          local_sala?: string | null
           nome?: string
           olympiad_id?: string
+          responsavel?: string | null
         }
         Relationships: [
           {
@@ -115,54 +130,119 @@ export type Database = {
       }
       olympiads: {
         Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
           created_at: string
           data_fim: string | null
           data_inicio: string | null
           descricao: string | null
+          dias_semana: string | null
+          estado: string | null
           faixa_etaria: string | null
+          horario: string | null
           id: string
           limite_participantes: number | null
           local: string | null
           nome: string
           numero_edital: string | null
+          numero_endereco: string | null
           observacoes: string | null
+          ponto_referencia: string | null
           responsavel: string | null
+          rua: string | null
           status: string | null
           tipo: string | null
         }
         Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           created_at?: string
           data_fim?: string | null
           data_inicio?: string | null
           descricao?: string | null
+          dias_semana?: string | null
+          estado?: string | null
           faixa_etaria?: string | null
+          horario?: string | null
           id?: string
           limite_participantes?: number | null
           local?: string | null
           nome: string
           numero_edital?: string | null
+          numero_endereco?: string | null
           observacoes?: string | null
+          ponto_referencia?: string | null
           responsavel?: string | null
+          rua?: string | null
           status?: string | null
           tipo?: string | null
         }
         Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           created_at?: string
           data_fim?: string | null
           data_inicio?: string | null
           descricao?: string | null
+          dias_semana?: string | null
+          estado?: string | null
           faixa_etaria?: string | null
+          horario?: string | null
           id?: string
           limite_participantes?: number | null
           local?: string | null
           nome?: string
           numero_edital?: string | null
+          numero_endereco?: string | null
           observacoes?: string | null
+          ponto_referencia?: string | null
           responsavel?: string | null
+          rua?: string | null
           status?: string | null
           tipo?: string | null
         }
         Relationships: []
+      }
+      post_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_files_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       posts: {
         Row: {
@@ -172,6 +252,7 @@ export type Database = {
           created_at: string
           id: string
           imagem_url: string | null
+          localizacao_maps: string | null
           publicado: boolean | null
           tags: string | null
           titulo: string
@@ -185,6 +266,7 @@ export type Database = {
           created_at?: string
           id?: string
           imagem_url?: string | null
+          localizacao_maps?: string | null
           publicado?: boolean | null
           tags?: string | null
           titulo: string
@@ -198,6 +280,7 @@ export type Database = {
           created_at?: string
           id?: string
           imagem_url?: string | null
+          localizacao_maps?: string | null
           publicado?: boolean | null
           tags?: string | null
           titulo?: string
@@ -333,10 +416,51 @@ export type Database = {
           },
         ]
       }
+      workshop_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+          tipo: string
+          workshop_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url: string
+          id?: string
+          tipo?: string
+          workshop_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+          tipo?: string
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_files_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workshops: {
         Row: {
           created_at: string
+          data_fim: string | null
+          data_inicio: string | null
           descricao: string | null
+          dias_aulas: string | null
           horario: string | null
           id: string
           local: string | null
@@ -349,7 +473,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
           descricao?: string | null
+          dias_aulas?: string | null
           horario?: string | null
           id?: string
           local?: string | null
@@ -362,7 +489,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
           descricao?: string | null
+          dias_aulas?: string | null
           horario?: string | null
           id?: string
           local?: string | null
