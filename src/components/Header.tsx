@@ -33,15 +33,15 @@ const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-primary/10 bg-cyber-dark/95 backdrop-blur-md">
+    <header className="sticky top-0 z-50 glass">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3 group">
           <img
             src="/logos_tech_defense.jpeg"
             alt="Olimpíada Tech Defense"
-            className="h-10 w-10 rounded-md object-cover"
+            className="h-10 w-10 rounded-md object-cover ring-1 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300"
           />
-          <span className="font-display text-lg font-bold tracking-wider text-primary-foreground">
+          <span className="font-display text-lg font-bold tracking-wider text-foreground">
             Tech <span className="text-primary">Defense</span>
           </span>
         </Link>
@@ -53,7 +53,7 @@ const Header = () => {
               <button
                 key={item.path}
                 onClick={() => handleNavClick(item.path)}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                className="text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary"
               >
                 {item.label}
               </button>
@@ -61,23 +61,23 @@ const Header = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                className="text-sm font-medium text-muted-foreground transition-colors duration-300 hover:text-primary"
               >
                 {item.label}
               </Link>
             )
           )}
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10">
+            <Button asChild variant="outline" size="sm" className="btn-cyber border-primary/20 text-primary hover:bg-primary/10">
               <Link to="/login">Área do Participante</Link>
             </Button>
-            <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button asChild size="sm" className="btn-cyber bg-primary text-primary-foreground hover:bg-primary/90">
               <Link to="/cadastro">
                 <Shield className="mr-1 h-4 w-4" />
                 Cadastre-se
               </Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
+            <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-primary hover:bg-primary/10">
               <Link to="/admin-login">
                 <Settings className="h-4 w-4" />
               </Link>
@@ -87,7 +87,7 @@ const Header = () => {
 
         {/* Mobile toggle */}
         <button
-          className="text-muted-foreground md:hidden"
+          className="text-muted-foreground md:hidden hover:text-primary transition-colors"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >
@@ -97,14 +97,14 @@ const Header = () => {
 
       {/* Mobile nav */}
       {mobileOpen && (
-        <div className="border-t border-primary/10 bg-cyber-dark p-4 md:hidden">
+        <div className="border-t border-primary/10 bg-background/95 backdrop-blur-xl p-4 md:hidden animate-fade-in">
           <nav className="flex flex-col gap-3">
             {navItems.map((item) =>
               item.path.startsWith("/#") ? (
                 <button
                   key={item.path}
                   onClick={() => handleNavClick(item.path)}
-                  className="text-left text-sm text-muted-foreground hover:text-primary"
+                  className="text-left text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   {item.label}
                 </button>
@@ -112,7 +112,7 @@ const Header = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="text-sm text-muted-foreground hover:text-primary"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   {item.label}
@@ -120,16 +120,16 @@ const Header = () => {
               )
             )}
             <div className="mt-2 flex flex-col gap-2">
-              <Button asChild variant="outline" size="sm" className="border-primary/30 text-primary">
+              <Button asChild variant="outline" size="sm" className="btn-cyber border-primary/20 text-primary">
                 <Link to="/login" onClick={() => setMobileOpen(false)}>Área do Participante</Link>
               </Button>
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="btn-cyber">
                 <Link to="/cadastro" onClick={() => setMobileOpen(false)}>
                   <Shield className="mr-1 h-4 w-4" />
                   Cadastre-se
                 </Link>
               </Button>
-              <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+              <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
                 <Link to="/admin-login" onClick={() => setMobileOpen(false)}>
                   <Settings className="mr-1 h-4 w-4" />
                   Painel Admin

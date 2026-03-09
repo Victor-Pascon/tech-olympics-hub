@@ -15,18 +15,15 @@ const ESTADOS_BR = [
   "PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"
 ];
 
-// ---------- CPF Validation ----------
 function validateCPF(cpf: string): boolean {
   const nums = cpf.replace(/\D/g, "");
   if (nums.length !== 11) return false;
-  if (/^(\d)\1{10}$/.test(nums)) return false; // all same digits
-
+  if (/^(\d)\1{10}$/.test(nums)) return false;
   let sum = 0;
   for (let i = 0; i < 9; i++) sum += parseInt(nums[i]) * (10 - i);
   let rest = (sum * 10) % 11;
   if (rest === 10) rest = 0;
   if (rest !== parseInt(nums[9])) return false;
-
   sum = 0;
   for (let i = 0; i < 10; i++) sum += parseInt(nums[i]) * (11 - i);
   rest = (sum * 10) % 11;
@@ -34,7 +31,6 @@ function validateCPF(cpf: string): boolean {
   return rest === parseInt(nums[10]);
 }
 
-// ---------- Password requirements ----------
 const passwordChecks = (pwd: string) => [
   { label: "Mínimo 6 caracteres", ok: pwd.length >= 6 },
   { label: "Letra minúscula (a-z)", ok: /[a-z]/.test(pwd) },
@@ -72,7 +68,6 @@ const Cadastro = () => {
     return nums.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
   };
 
-  // ---------- CPF blur validation ----------
   const handleCPFBlur = () => {
     const nums = form.cpf.replace(/\D/g, "");
     if (nums.length === 11 && !validateCPF(form.cpf)) {
@@ -80,7 +75,6 @@ const Cadastro = () => {
     }
   };
 
-  // ---------- CEP fetch ----------
   const formatCEP = (v: string) => {
     const nums = v.replace(/\D/g, "").slice(0, 8);
     return nums.replace(/(\d{5})(\d)/, "$1-$2");
@@ -89,11 +83,9 @@ const Cadastro = () => {
   useEffect(() => {
     const nums = form.cep.replace(/\D/g, "");
     if (nums.length !== 8) return;
-
     const controller = new AbortController();
     setCepLoading(true);
     setErrors((prev) => ({ ...prev, cep: "" }));
-
     fetch(`https://viacep.com.br/ws/${nums}/json/`, { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => {
@@ -110,57 +102,36 @@ const Cadastro = () => {
       })
       .catch(() => {})
       .finally(() => setCepLoading(false));
-
     return () => controller.abort();
   }, [form.cep]);
 
-  // ---------- Submit ----------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-
     if (!validateCPF(form.cpf)) newErrors.cpf = "CPF inválido.";
-
     const cepNums = form.cep.replace(/\D/g, "");
     if (cepNums.length !== 8) newErrors.cep = "CEP deve ter 8 dígitos.";
-
     const checks = passwordChecks(form.senha);
     if (checks.some((c) => !c.ok)) newErrors.senha = "A senha não atende todos os requisitos.";
-
     if (form.senha !== form.confirmarSenha) newErrors.confirmarSenha = "As senhas não coincidem.";
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       toast({ title: "Erro", description: "Corrija os campos destacados.", variant: "destructive" });
       return;
     }
-
     setLoading(true);
-
-    const { data, error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.senha,
-    });
-
+    const { data, error } = await supabase.auth.signUp({ email: form.email, password: form.senha });
     if (error) {
       setLoading(false);
       toast({ title: "Erro no cadastro", description: error.message, variant: "destructive" });
       return;
     }
-
     if (data.user) {
       await supabase.from("profiles").update({
-        nome: form.nome,
-        cpf: form.cpf,
-        telefone: form.telefone,
-        cep: form.cep,
-        estado: form.estado,
-        cidade: form.cidade,
-        rua: form.rua,
-        numero: form.numero,
+        nome: form.nome, cpf: form.cpf, telefone: form.telefone,
+        cep: form.cep, estado: form.estado, cidade: form.cidade, rua: form.rua, numero: form.numero,
       }).eq("id", data.user.id);
     }
-
     setLoading(false);
     toast({ title: "Cadastro realizado!", description: "Sua conta foi criada com sucesso." });
     navigate("/participante");
@@ -174,7 +145,7 @@ const Cadastro = () => {
         <div className="container max-w-2xl">
           <Card className="card-cyber border-0">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 border border-primary/10">
                 <Shield className="h-7 w-7 text-primary" />
               </div>
               <CardTitle className="font-display text-2xl">Cadastre-se na Olimpíada</CardTitle>
@@ -187,22 +158,20 @@ const Cadastro = () => {
                   <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-primary">Dados Pessoais</h3>
                   <div className="space-y-2">
                     <Label htmlFor="nome">Nome Completo *</Label>
-                    <Input id="nome" placeholder="Seu nome completo" value={form.nome} onChange={(e) => update("nome", e.target.value)} required />
+                    <Input id="nome" placeholder="Seu nome completo" value={form.nome} onChange={(e) => update("nome", e.target.value)} className="glow-border" required />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="email">E-mail *</Label>
-                      <Input id="email" type="email" placeholder="seu@email.com" value={form.email} onChange={(e) => update("email", e.target.value)} required />
+                      <Input id="email" type="email" placeholder="seu@email.com" value={form.email} onChange={(e) => update("email", e.target.value)} className="glow-border" required />
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="cpf">CPF *</Label>
                       <Input
-                        id="cpf"
-                        placeholder="000.000.000-00"
-                        value={form.cpf}
+                        id="cpf" placeholder="000.000.000-00" value={form.cpf}
                         onChange={(e) => update("cpf", formatCPF(e.target.value))}
                         onBlur={handleCPFBlur}
-                        className={errors.cpf ? "border-destructive focus-visible:ring-destructive" : ""}
+                        className={errors.cpf ? "border-destructive focus-visible:ring-destructive" : "glow-border"}
                         required
                       />
                       {errors.cpf && <p className="text-xs text-destructive">{errors.cpf}</p>}
@@ -210,7 +179,7 @@ const Cadastro = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="telefone">Telefone</Label>
-                    <Input id="telefone" placeholder="(79) 99999-0000" value={form.telefone} onChange={(e) => update("telefone", formatPhone(e.target.value))} />
+                    <Input id="telefone" placeholder="(79) 99999-0000" value={form.telefone} onChange={(e) => update("telefone", formatPhone(e.target.value))} className="glow-border" />
                   </div>
                 </div>
 
@@ -222,11 +191,9 @@ const Cadastro = () => {
                       <Label htmlFor="cep">CEP *</Label>
                       <div className="relative">
                         <Input
-                          id="cep"
-                          placeholder="49500-000"
-                          value={form.cep}
+                          id="cep" placeholder="49500-000" value={form.cep}
                           onChange={(e) => update("cep", formatCEP(e.target.value))}
-                          className={errors.cep ? "border-destructive focus-visible:ring-destructive" : ""}
+                          className={errors.cep ? "border-destructive focus-visible:ring-destructive" : "glow-border"}
                           required
                         />
                         {cepLoading && <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />}
@@ -244,17 +211,17 @@ const Cadastro = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="cidade">Cidade *</Label>
-                      <Input id="cidade" placeholder="Itabaiana" value={form.cidade} onChange={(e) => update("cidade", e.target.value)} required />
+                      <Input id="cidade" placeholder="Itabaiana" value={form.cidade} onChange={(e) => update("cidade", e.target.value)} className="glow-border" required />
                     </div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-[1fr_100px]">
                     <div className="space-y-2">
                       <Label htmlFor="rua">Rua *</Label>
-                      <Input id="rua" placeholder="Rua / Av." value={form.rua} onChange={(e) => update("rua", e.target.value)} required />
+                      <Input id="rua" placeholder="Rua / Av." value={form.rua} onChange={(e) => update("rua", e.target.value)} className="glow-border" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="numero">Nº *</Label>
-                      <Input id="numero" placeholder="123" value={form.numero} onChange={(e) => update("numero", e.target.value)} required />
+                      <Input id="numero" placeholder="123" value={form.numero} onChange={(e) => update("numero", e.target.value)} className="glow-border" required />
                     </div>
                   </div>
                 </div>
@@ -267,15 +234,12 @@ const Cadastro = () => {
                       <Label htmlFor="senha">Senha *</Label>
                       <div className="relative">
                         <Input
-                          id="senha"
-                          type={showPass ? "text" : "password"}
-                          placeholder="Crie sua senha"
-                          value={form.senha}
-                          onChange={(e) => update("senha", e.target.value)}
-                          className={errors.senha ? "border-destructive focus-visible:ring-destructive" : ""}
+                          id="senha" type={showPass ? "text" : "password"} placeholder="Crie sua senha"
+                          value={form.senha} onChange={(e) => update("senha", e.target.value)}
+                          className={errors.senha ? "border-destructive focus-visible:ring-destructive" : "glow-border"}
                           required
                         />
-                        <button type="button" className="absolute right-2 top-2.5 text-muted-foreground" onClick={() => setShowPass(!showPass)}>
+                        <button type="button" className="absolute right-2 top-2.5 text-muted-foreground hover:text-primary transition-colors" onClick={() => setShowPass(!showPass)}>
                           {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
@@ -283,36 +247,28 @@ const Cadastro = () => {
                     <div className="space-y-1">
                       <Label htmlFor="confirmarSenha">Confirmar Senha *</Label>
                       <Input
-                        id="confirmarSenha"
-                        type={showPass ? "text" : "password"}
-                        placeholder="Repita a senha"
-                        value={form.confirmarSenha}
-                        onChange={(e) => update("confirmarSenha", e.target.value)}
-                        className={errors.confirmarSenha ? "border-destructive focus-visible:ring-destructive" : ""}
+                        id="confirmarSenha" type={showPass ? "text" : "password"} placeholder="Repita a senha"
+                        value={form.confirmarSenha} onChange={(e) => update("confirmarSenha", e.target.value)}
+                        className={errors.confirmarSenha ? "border-destructive focus-visible:ring-destructive" : "glow-border"}
                         required
                       />
                       {errors.confirmarSenha && <p className="text-xs text-destructive">{errors.confirmarSenha}</p>}
                     </div>
                   </div>
 
-                  {/* Password requirements checklist */}
-                  <div className="rounded-lg border border-border bg-muted/40 p-3 space-y-1.5">
+                  <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1.5">
                     <p className="text-xs font-semibold text-muted-foreground mb-1">Requisitos da senha:</p>
                     {checks.map((c) => (
                       <div key={c.label} className="flex items-center gap-2 text-xs">
-                        {c.ok ? (
-                          <Check className="h-3.5 w-3.5 text-green-500" />
-                        ) : (
-                          <X className="h-3.5 w-3.5 text-destructive" />
-                        )}
-                        <span className={c.ok ? "text-green-500" : "text-muted-foreground"}>{c.label}</span>
+                        {c.ok ? <Check className="h-3.5 w-3.5 text-primary" /> : <X className="h-3.5 w-3.5 text-destructive" />}
+                        <span className={c.ok ? "text-primary" : "text-muted-foreground"}>{c.label}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex-col gap-3">
-                <Button type="submit" size="lg" className="w-full font-display tracking-wide" disabled={loading}>
+                <Button type="submit" size="lg" className="btn-cyber w-full font-display tracking-wide" disabled={loading}>
                   {loading ? "Cadastrando..." : "Criar Conta"}
                 </Button>
                 <p className="text-sm text-muted-foreground">

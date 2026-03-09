@@ -35,34 +35,34 @@ const mockPosts = [
 const Index = () => {
   return (
     <Layout>
-      {/* Hero */}
-      <section className="hero-bg-animated circuit-pattern relative overflow-hidden py-20 lg:py-32">
+      {/* Hero with Matrix Background */}
+      <section className="hero-matrix relative overflow-hidden py-24 lg:py-36">
         <div className="container relative z-10">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 flex justify-center">
+            <div className="mb-8 flex justify-center">
               <img
                 src="/logos_tech_defense.jpeg"
                 alt="Olimpíada Tech Defense"
-                className="h-28 w-28 rounded-2xl object-cover shadow-lg shadow-primary/20 lg:h-36 lg:w-36"
+                className="h-28 w-28 rounded-2xl object-cover shadow-lg shadow-primary/30 ring-2 ring-primary/20 lg:h-36 lg:w-36 animate-glow-pulse"
               />
             </div>
-            <Badge className="mb-4 bg-primary/20 text-primary hover:bg-primary/30">
+            <Badge className="mb-5 bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25 backdrop-blur-sm">
               <Trophy className="mr-1 h-3 w-3" /> IFS Itabaiana · FAPITEC/SE
             </Badge>
-            <h1 className="font-display mb-6 text-4xl font-bold tracking-tight text-primary-foreground cyber-glow lg:text-6xl">
+            <h1 className="font-display mb-6 text-4xl font-bold tracking-tight text-foreground cyber-glow lg:text-6xl">
               Olimpíada <span className="text-primary">Tech Defense</span>
             </h1>
-            <p className="mb-8 text-lg text-muted-foreground lg:text-xl">
+            <p className="mb-10 text-lg text-muted-foreground lg:text-xl leading-relaxed">
               Desafie seus conhecimentos em tecnologia e segurança digital. Participe de oficinas, prove suas habilidades e faça parte da comunidade tech.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button asChild size="lg" className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 font-display tracking-wide">
+              <Button asChild size="lg" className="btn-cyber w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 font-display tracking-wide">
                 <Link to="/cadastro">
                   <UserPlus className="mr-2 h-5 w-5" />
                   Cadastre-se na Olimpíada
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto border-primary/30 text-primary hover:bg-primary/10 font-display tracking-wide">
+              <Button asChild size="lg" variant="outline" className="btn-cyber w-full sm:w-auto border-primary/30 text-primary hover:bg-primary/10 font-display tracking-wide">
                 <Link to="/login">
                   <Shield className="mr-2 h-5 w-5" />
                   Área do Participante
@@ -71,15 +71,15 @@ const Index = () => {
             </div>
           </div>
         </div>
-        {/* Decorative gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80" />
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-[2]" />
       </section>
 
       {/* Features / Sobre */}
-      <section className="py-16" id="sobre">
+      <section className="py-20" id="sobre">
         <div className="container">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="font-display mb-3 text-2xl font-bold tracking-tight lg:text-3xl">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <h2 className="font-display mb-4 text-2xl font-bold tracking-tight lg:text-3xl">
               Por que participar?
             </h2>
             <p className="text-muted-foreground">
@@ -92,13 +92,13 @@ const Index = () => {
               { icon: Trophy, title: "Competição", desc: "Teste seus conhecimentos em provas presenciais e ganhe certificados e prêmios." },
               { icon: Shield, title: "Segurança Digital", desc: "Domine conceitos essenciais de proteção de dados e defesa cibernética." },
             ].map((feat) => (
-              <Card key={feat.title} className="card-cyber border-0">
-                <CardContent className="pt-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                    <feat.icon className="h-6 w-6 text-primary" />
+              <Card key={feat.title} className="card-premium border-0 group">
+                <CardContent className="pt-8 pb-8">
+                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 border border-primary/10 group-hover:border-primary/30 group-hover:bg-primary/15 transition-all duration-300">
+                    <feat.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="font-display mb-2 text-lg font-semibold">{feat.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feat.desc}</p>
+                  <h3 className="font-display mb-3 text-lg font-semibold">{feat.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feat.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -107,28 +107,28 @@ const Index = () => {
       </section>
 
       {/* Blog Posts */}
-      <section className="hero-bg-animated circuit-pattern py-16" id="blog">
+      <section className="hero-bg-animated circuit-pattern py-20" id="blog">
         <div className="container">
-          <div className="mb-10 flex items-center justify-between">
+          <div className="mb-12 flex items-center justify-between">
             <div>
-              <h2 className="font-display text-2xl font-bold tracking-tight text-primary-foreground lg:text-3xl">Últimas Publicações</h2>
-              <p className="mt-1 text-primary-foreground/70">Fique por dentro das novidades</p>
+              <h2 className="font-display text-2xl font-bold tracking-tight text-foreground lg:text-3xl">Últimas Publicações</h2>
+              <p className="mt-2 text-muted-foreground">Fique por dentro das novidades</p>
             </div>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {mockPosts.map((post) => (
-              <Card key={post.id} className="card-cyber group overflow-hidden border-0 transition-all">
-                <div className="aspect-video overflow-hidden bg-muted">
+              <Card key={post.id} className="card-premium group overflow-hidden border-0">
+                <div className="aspect-video overflow-hidden bg-muted/30">
                   <img
                     src={post.image}
                     alt={post.title}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 </div>
                 <CardHeader className="pb-2">
                   <div className="mb-2 flex flex-wrap gap-2">
                     {post.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
+                      <Badge key={tag} variant="secondary" className="text-xs bg-primary/10 text-primary border border-primary/10">
                         {tag}
                       </Badge>
                     ))}
@@ -143,7 +143,7 @@ const Index = () => {
                     <Calendar className="h-3 w-3" />
                     {new Date(post.date).toLocaleDateString("pt-BR")}
                   </span>
-                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 hover:bg-primary/10">
                     Ler mais <ArrowRight className="ml-1 h-3 w-3" />
                   </Button>
                 </CardFooter>
@@ -154,7 +154,7 @@ const Index = () => {
       </section>
 
       {/* Location / Contact */}
-      <section className="border-t border-border py-16" id="contato">
+      <section className="border-t border-border py-20" id="contato">
         <div className="container">
           <div className="grid gap-8 lg:grid-cols-2">
             <div>
@@ -175,7 +175,7 @@ const Index = () => {
                 </p>
               </div>
             </div>
-            <div className="overflow-hidden rounded-lg border border-primary/10">
+            <div className="overflow-hidden rounded-lg border border-primary/10 glow-border">
               <iframe
                 title="Localização IFS Itabaiana"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.123456!2d-37.424!3d-10.684!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQxJzAyLjQiUyAzN8KwMjUnMjYuNCJX!5e0!3m2!1spt-BR!2sbr!4v1234567890"
