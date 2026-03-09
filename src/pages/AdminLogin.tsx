@@ -32,7 +32,6 @@ const AdminLogin = () => {
       return;
     }
 
-    // Check if user has admin role
     const { data: roleData, error: roleError } = await supabase
       .rpc("has_role", { _user_id: data.user.id, _role: "admin" });
 
@@ -58,7 +57,7 @@ const AdminLogin = () => {
         <div className="container max-w-md">
           <Card className="card-cyber border-0">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10 border border-destructive/10">
                 <ShieldAlert className="h-7 w-7 text-destructive" />
               </div>
               <CardTitle className="font-display text-2xl">Acesso Administrativo</CardTitle>
@@ -74,6 +73,7 @@ const AdminLogin = () => {
                     placeholder="admin@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="glow-border"
                     required
                   />
                 </div>
@@ -86,11 +86,12 @@ const AdminLogin = () => {
                       placeholder="Senha de administrador"
                       value={senha}
                       onChange={(e) => setSenha(e.target.value)}
+                      className="glow-border"
                       required
                     />
                     <button
                       type="button"
-                      className="absolute right-2 top-2.5 text-muted-foreground"
+                      className="absolute right-2 top-2.5 text-muted-foreground hover:text-primary transition-colors"
                       onClick={() => setShowPass(!showPass)}
                     >
                       {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -99,7 +100,7 @@ const AdminLogin = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" size="lg" className="w-full font-display tracking-wide" disabled={loading}>
+                <Button type="submit" size="lg" className="btn-cyber w-full font-display tracking-wide" disabled={loading}>
                   <Settings className="mr-2 h-4 w-4" />
                   {loading ? "Verificando..." : "Acessar Painel"}
                 </Button>
