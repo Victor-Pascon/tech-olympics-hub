@@ -20,11 +20,12 @@ type Olympiad = {
   cep: string | null; rua: string | null; bairro: string | null; cidade: string | null;
   estado: string | null; numero_endereco: string | null; complemento: string | null;
   ponto_referencia: string | null; horario: string | null; dias_semana: string | null;
+  total_horas: number | null;
 };
 
 type Activity = {
   id?: string; nome: string; descricao: string; responsavel: string;
-  horario: string; data_atividade: string; local_sala: string; limite_vagas: number;
+  horario: string; data_atividade: string; local_sala: string; limite_vagas: number; total_horas: number;
 };
 
 const emptyForm = {
@@ -32,11 +33,11 @@ const emptyForm = {
   responsavel: "", observacoes: "", numero_edital: "", limite_participantes: 0,
   faixa_etaria: "", status: "ativa", cep: "", rua: "", bairro: "", cidade: "",
   estado: "", numero_endereco: "", complemento: "", ponto_referencia: "",
-  horario: "", dias_semana: "",
+  horario: "", dias_semana: "", total_horas: 0,
 };
 
 const emptyActivity: Activity = {
-  nome: "", descricao: "", responsavel: "", horario: "", data_atividade: "", local_sala: "", limite_vagas: 30,
+  nome: "", descricao: "", responsavel: "", horario: "", data_atividade: "", local_sala: "", limite_vagas: 30, total_horas: 0,
 };
 
 const OlympiadsTab = () => {
@@ -49,9 +50,10 @@ const OlympiadsTab = () => {
   const [newActivity, setNewActivity] = useState<Activity>({ ...emptyActivity });
   const [participantsDialog, setParticipantsDialog] = useState<string | null>(null);
   const [participants, setParticipants] = useState<any[]>([]);
-  const [attendanceDialog, setAttendanceDialog] = useState<string | null>(null);
   const [activityDialog, setActivityDialog] = useState<string | null>(null);
   const [activityDialogActivities, setActivityDialogActivities] = useState<Activity[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<string>("all");
+  const [currentOlympiadActivities, setCurrentOlympiadActivities] = useState<{id: string, nome: string}[]>([]);
 
   useEffect(() => { load(); }, []);
 
@@ -73,13 +75,13 @@ const OlympiadsTab = () => {
       cep: o.cep || "", rua: o.rua || "", bairro: o.bairro || "",
       cidade: o.cidade || "", estado: o.estado || "", numero_endereco: o.numero_endereco || "",
       complemento: o.complemento || "", ponto_referencia: o.ponto_referencia || "",
-      horario: o.horario || "", dias_semana: o.dias_semana || "",
+      horario: o.horario || "", dias_semana: o.dias_semana || "", total_horas: o.total_horas || 0,
     });
     const { data: acts } = await supabase.from("olympiad_activities").select("*").eq("olympiad_id", o.id);
     setActivities(acts?.map((a: any) => ({
       id: a.id, nome: a.nome, descricao: a.descricao || "", responsavel: a.responsavel || "",
       horario: a.horario || "", data_atividade: a.data_atividade || "", local_sala: a.local_sala || "",
-      limite_vagas: a.limite_vagas || 0,
+      limite_vagas: a.limite_vagas || 0, total_horas: a.total_horas || 0,
     })) || []);
     setEditing(o.id);
     setOpen(true);
@@ -90,6 +92,7 @@ const OlympiadsTab = () => {
     const payload = {
       ...form, limite_participantes: form.limite_participantes || 0,
       data_inicio: form.data_inicio || null, data_fim: form.data_fim || null,
+      total_horas: form.total_horas || 0,
     };
     let olympiadId = editing;
     if (editing) {
@@ -106,7 +109,7 @@ const OlympiadsTab = () => {
             olympiad_id: olympiadId!, nome: a.nome, descricao: a.descricao,
             responsavel: a.responsavel, horario: a.horario,
             data_atividade: a.data_atividade || null, local_sala: a.local_sala,
-            limite_vagas: a.limite_vagas,
+            limite_vagas: a.limite_vagas, total_horas: a.total_horas || 0,
           }))
         );
       }
@@ -135,7 +138,7 @@ const OlympiadsTab = () => {
     setActivityDialogActivities(data?.map((a: any) => ({
       id: a.id, nome: a.nome, descricao: a.descricao || "", responsavel: a.responsavel || "",
       horario: a.horario || "", data_atividade: a.data_atividade || "", local_sala: a.local_sala || "",
-      limite_vagas: a.limite_vagas || 0,
+      limite_vagas: a.limite_vagas || 0, total_horas: a.total_horas || 0,
     })) || []);
     setActivityDialog(olympiadId);
   };
@@ -146,7 +149,7 @@ const OlympiadsTab = () => {
       olympiad_id: activityDialog, nome: newActivity.nome, descricao: newActivity.descricao,
       responsavel: newActivity.responsavel, horario: newActivity.horario,
       data_atividade: newActivity.data_atividade || null, local_sala: newActivity.local_sala,
-      limite_vagas: newActivity.limite_vagas,
+      limite_vagas: newActivity.limite_vagas, total_horas: newActivity.total_horas || 0,
     });
     setNewActivity({ ...emptyActivity });
     toast({ title: "Atividade adicionada" });
@@ -159,40 +162,66 @@ const OlympiadsTab = () => {
     toast({ title: "Atividade removida" });
   };
 
-  const loadParticipants = async (olympiadId: string) => {
-    const { data: ws } = await supabase.from("workshops").select("id").eq("olympiad_id", olympiadId);
-    if (!ws?.length) { setParticipants([]); setParticipantsDialog(olympiadId); return; }
-    const wsIds = ws.map(w => w.id);
-    const { data: enrollments } = await supabase.from("workshop_enrollments").select("user_id").in("workshop_id", wsIds);
-    if (!enrollments?.length) { setParticipants([]); setParticipantsDialog(olympiadId); return; }
+  const loadParticipants = async (olympiadId: string, actIdFilter: string = "all") => {
+    let query = supabase.from("olympiad_enrollments").select("user_id, activity_id, olympiad_activities(nome)").eq("olympiad_id", olympiadId);
+    if (actIdFilter !== "all" && actIdFilter) {
+      query = query.eq("activity_id", actIdFilter);
+    }
+    const { data: enrollments } = await query;
+
+    if (!enrollments?.length) { setParticipants([]); return; }
+
     const userIds = [...new Set(enrollments.map(e => e.user_id))];
     const { data: profiles } = await supabase.from("profiles").select("id, nome, email").in("id", userIds);
+    
+    // Fetch attendance for this olympiad
     const { data: attendance } = await supabase.from("attendance").select("*").eq("olympiad_id", olympiadId).in("user_id", userIds);
-    setParticipants((profiles || []).map(p => {
-      const att = attendance?.find(a => a.user_id === p.id);
-      return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id };
-    }));
+
+    // If filtering by activity, we should only show the row for that activity.
+    // Otherwise, we group by user and show all modalities, and general attendance.
+    if (actIdFilter !== "all") {
+      setParticipants((profiles || []).map(p => {
+        const att = attendance?.find(a => a.user_id === p.id && a.activity_id === actIdFilter);
+        const actName = currentOlympiadActivities.find(a => a.id === actIdFilter)?.nome || "Específica";
+        return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id, modalidades: actName, activity_id: actIdFilter };
+      }));
+    } else {
+      setParticipants((profiles || []).map(p => {
+        const userEnrolls = enrollments.filter(e => e.user_id === p.id);
+        const modalidades = userEnrolls.map(e => (e.olympiad_activities as any)?.nome).filter(Boolean).join(", ") || "Inscrição Geral";
+        const att = attendance?.find(a => a.user_id === p.id && !a.activity_id); // General attendance
+        return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id, modalidades, activity_id: null };
+      }));
+    }
+  };
+
+  const openParticipants = async (olympiadId: string) => {
+    const { data } = await supabase.from("olympiad_activities").select("id, nome").eq("olympiad_id", olympiadId);
+    setCurrentOlympiadActivities(data || []);
+    setSelectedActivity("all");
+    await loadParticipants(olympiadId, "all");
     setParticipantsDialog(olympiadId);
   };
 
-  const openAttendance = async (olympiadId: string) => {
-    await loadParticipants(olympiadId);
-    setAttendanceDialog(olympiadId); setParticipantsDialog(null);
+  const handleFilterChange = async (val: string, olympiadId: string) => {
+    setSelectedActivity(val);
+    await loadParticipants(olympiadId, val);
   };
 
-  const togglePresence = async (userId: string, olympiadId: string, currentPresent: boolean, attendanceId?: string) => {
+  const togglePresence = async (userId: string, olympiadId: string, currentPresent: boolean, attendanceId?: string, activityId?: string | null) => {
     if (attendanceId) {
       await supabase.from("attendance").update({ presente: !currentPresent }).eq("id", attendanceId);
     } else {
-      await supabase.from("attendance").insert({ user_id: userId, olympiad_id: olympiadId, presente: true });
+      await supabase.from("attendance").insert({ user_id: userId, olympiad_id: olympiadId, activity_id: activityId || null, presente: true });
     }
-    await loadParticipants(olympiadId);
-    setAttendanceDialog(olympiadId); setParticipantsDialog(null);
+    await loadParticipants(olympiadId, selectedActivity);
   };
 
   const printList = (olympiadName: string) => {
+    const actName = currentOlympiadActivities.find(a => a.id === selectedActivity)?.nome;
+    const printTitle = actName ? `${olympiadName} - ${actName}` : `${olympiadName} (Geral)`;
     const pw = window.open("", "_blank"); if (!pw) return;
-    pw.document.write(`<html><head><title>Lista - ${olympiadName}</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:8px;text-align:left}th{background:#eee}</style></head><body><h2>Lista de Presença - ${olympiadName}</h2><p>Data: ${new Date().toLocaleDateString("pt-BR")}</p><table><tr><th>#</th><th>Nome</th><th>E-mail</th><th>Assinatura</th></tr>${participants.map((p, i) => `<tr><td>${i + 1}</td><td>${p.nome}</td><td>${p.email}</td><td style="width:200px"></td></tr>`).join("")}</table></body></html>`);
+    pw.document.write(`<html><head><title>Lista - ${printTitle}</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:8px;text-align:left}th{background:#eee}</style></head><body><h2>Lista de Presença - ${printTitle}</h2><p>Data: ${new Date().toLocaleDateString("pt-BR")}</p><table><tr><th>#</th><th>Nome</th><th>E-mail</th><th>Assinatura</th></tr>${participants.map((p, i) => `<tr><td>${i + 1}</td><td>${p.nome}</td><td>${p.email}</td><td style="width:200px"></td></tr>`).join("")}</table></body></html>`);
     pw.document.close(); pw.print();
   };
 
@@ -247,10 +276,11 @@ const OlympiadsTab = () => {
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-1"><Label>Responsável</Label><Input value={form.responsavel} onChange={e => F("responsavel", e.target.value)} /></div>
               <div className="space-y-1"><Label>Nº Edital</Label><Input value={form.numero_edital} onChange={e => F("numero_edital", e.target.value)} /></div>
-              <div className="space-y-1"><Label>Faixa Etária</Label><Input value={form.faixa_etaria} onChange={e => F("faixa_etaria", e.target.value)} placeholder="14-25 anos" /></div>
+              <div className="space-y-1"><Label>Carga Horária (Geral)</Label><Input type="number" value={form.total_horas} onChange={e => setForm({ ...form, total_horas: parseInt(e.target.value) || 0 })} placeholder="0" /></div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-1"><Label>Limite Participantes</Label><Input type="number" value={form.limite_participantes} onChange={e => setForm({ ...form, limite_participantes: parseInt(e.target.value) || 0 })} /></div>
+              <div className="space-y-1"><Label>Faixa Etária</Label><Input value={form.faixa_etaria} onChange={e => F("faixa_etaria", e.target.value)} placeholder="14-25 anos" /></div>
               <div className="space-y-1">
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={v => F("status", v)}>
@@ -263,7 +293,7 @@ const OlympiadsTab = () => {
 
             {/* Activities */}
             <div className="border-t border-border pt-4">
-              <Label className="font-display text-sm">Atividades / Subcategorias</Label>
+              <Label className="font-display text-sm">Modalidades / Subcategorias da Olimpíada</Label>
               <div className="mt-2 space-y-2">
                 {activities.map((a, i) => (
                   <div key={i} className="rounded-lg bg-muted/20 p-3 space-y-1">
@@ -277,6 +307,7 @@ const OlympiadsTab = () => {
                           {a.data_atividade && <span>• {new Date(a.data_atividade + "T12:00").toLocaleDateString("pt-BR")}</span>}
                           {a.local_sala && <span>• Sala: {a.local_sala}</span>}
                           <span>• Vagas: {a.limite_vagas}</span>
+                          <span>• CH: {a.total_horas}h</span>
                         </div>
                       </div>
                       <Button variant="ghost" size="icon" onClick={() => removeActivity(i)}><X className="h-3 w-3" /></Button>
@@ -285,17 +316,18 @@ const OlympiadsTab = () => {
                 ))}
               </div>
               <div className="mt-3 rounded-lg border border-border p-3 space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Adicionar atividade</p>
+                <p className="text-xs font-medium text-muted-foreground">Adicionar Modalidade</p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Input placeholder="Nome *" value={newActivity.nome} onChange={e => setNewActivity({ ...newActivity, nome: e.target.value })} />
                   <Input placeholder="Responsável" value={newActivity.responsavel} onChange={e => setNewActivity({ ...newActivity, responsavel: e.target.value })} />
                 </div>
                 <Input placeholder="Descrição" value={newActivity.descricao} onChange={e => setNewActivity({ ...newActivity, descricao: e.target.value })} />
-                <div className="grid gap-2 sm:grid-cols-4">
+                <div className="grid gap-2 sm:grid-cols-5">
                   <Input placeholder="Horário" value={newActivity.horario} onChange={e => setNewActivity({ ...newActivity, horario: e.target.value })} />
                   <Input type="date" value={newActivity.data_atividade} onChange={e => setNewActivity({ ...newActivity, data_atividade: e.target.value })} />
                   <Input placeholder="Sala/Lab" value={newActivity.local_sala} onChange={e => setNewActivity({ ...newActivity, local_sala: e.target.value })} />
                   <Input type="number" placeholder="Vagas" value={newActivity.limite_vagas} onChange={e => setNewActivity({ ...newActivity, limite_vagas: parseInt(e.target.value) || 0 })} />
+                  <Input type="number" placeholder="Carga Horária" value={newActivity.total_horas} onChange={e => setNewActivity({ ...newActivity, total_horas: parseInt(e.target.value) || 0 })} />
                 </div>
                 <Button variant="outline" size="sm" onClick={addActivity}><Plus className="mr-1 h-3 w-3" />Adicionar</Button>
               </div>
@@ -322,9 +354,8 @@ const OlympiadsTab = () => {
                 <TableCell className="text-sm">{o.data_inicio ? new Date(o.data_inicio).toLocaleDateString("pt-BR") : "—"} — {o.data_fim ? new Date(o.data_fim).toLocaleDateString("pt-BR") : "—"}</TableCell>
                 <TableCell><Badge className={o.status === "ativa" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}>{o.status || "ativa"}</Badge></TableCell>
                 <TableCell className="text-right space-x-1">
-                  <Button variant="ghost" size="icon" title="Subcategorias" onClick={() => openActivityManager(o.id)}><ListPlus className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" title="Participantes" onClick={() => loadParticipants(o.id)}><Users className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" title="Presença" onClick={() => openAttendance(o.id)}><ClipboardList className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" title="Modalidades" onClick={() => openActivityManager(o.id)}><ListPlus className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" title="Participantes e Presença" onClick={() => openParticipants(o.id)}><Users className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" title="Editar" onClick={() => openEdit(o)}><Edit className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(o.id)}><Trash2 className="h-4 w-4" /></Button>
                 </TableCell>
@@ -338,7 +369,7 @@ const OlympiadsTab = () => {
       {/* Activity Manager Dialog */}
       <Dialog open={!!activityDialog} onOpenChange={() => setActivityDialog(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle className="font-display">Subcategorias / Atividades</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">Modalidades / Subcategorias</DialogTitle></DialogHeader>
           <div className="space-y-3">
             {activityDialogActivities.map((a) => (
               <div key={a.id} className="rounded-lg bg-muted/20 p-3 flex items-start justify-between">
@@ -350,24 +381,26 @@ const OlympiadsTab = () => {
                     {a.data_atividade && <span>• {new Date(a.data_atividade + "T12:00").toLocaleDateString("pt-BR")}</span>}
                     {a.local_sala && <span>• {a.local_sala}</span>}
                     <span>• Vagas: {a.limite_vagas}</span>
+                    <span>• CH: {a.total_horas}h</span>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" className="text-destructive" onClick={() => a.id && removeExternalActivity(a.id)}><Trash2 className="h-3 w-3" /></Button>
               </div>
             ))}
-            {activityDialogActivities.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhuma atividade</p>}
+            {activityDialogActivities.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhuma modalidade configurada</p>}
             <div className="border-t border-border pt-3 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Adicionar nova atividade</p>
+              <p className="text-xs font-medium text-muted-foreground">Adicionar nova modalidade</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <Input placeholder="Nome *" value={newActivity.nome} onChange={e => setNewActivity({ ...newActivity, nome: e.target.value })} />
                 <Input placeholder="Responsável" value={newActivity.responsavel} onChange={e => setNewActivity({ ...newActivity, responsavel: e.target.value })} />
               </div>
               <Input placeholder="Descrição" value={newActivity.descricao} onChange={e => setNewActivity({ ...newActivity, descricao: e.target.value })} />
-              <div className="grid gap-2 sm:grid-cols-4">
+              <div className="grid gap-2 sm:grid-cols-5">
                 <Input placeholder="Horário" value={newActivity.horario} onChange={e => setNewActivity({ ...newActivity, horario: e.target.value })} />
                 <Input type="date" value={newActivity.data_atividade} onChange={e => setNewActivity({ ...newActivity, data_atividade: e.target.value })} />
                 <Input placeholder="Sala/Lab" value={newActivity.local_sala} onChange={e => setNewActivity({ ...newActivity, local_sala: e.target.value })} />
                 <Input type="number" placeholder="Vagas" value={newActivity.limite_vagas} onChange={e => setNewActivity({ ...newActivity, limite_vagas: parseInt(e.target.value) || 0 })} />
+                <Input type="number" placeholder="Carga Horária" value={newActivity.total_horas} onChange={e => setNewActivity({ ...newActivity, total_horas: parseInt(e.target.value) || 0 })} />
               </div>
               <Button size="sm" onClick={saveExternalActivity}><Plus className="mr-1 h-3 w-3" />Adicionar</Button>
             </div>
@@ -377,48 +410,45 @@ const OlympiadsTab = () => {
 
       {/* Participants Dialog */}
       <Dialog open={!!participantsDialog} onOpenChange={() => setParticipantsDialog(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display flex items-center justify-between">
               Participantes
-              <Button size="sm" variant="outline" onClick={() => printList(olympiads.find(o => o.id === participantsDialog)?.nome || "")}><Printer className="mr-1 h-3 w-3" />Imprimir</Button>
+              <Button size="sm" variant="outline" onClick={() => printList(olympiads.find(o => o.id === participantsDialog)?.nome || "")}><Printer className="mr-1 h-3 w-3" />Imprimir Lista</Button>
             </DialogTitle>
           </DialogHeader>
+          <div className="mb-4">
+            <Label className="text-muted-foreground mb-2 block">Filtrar por Modalidade</Label>
+            <Select value={selectedActivity} onValueChange={(val) => handleFilterChange(val, participantsDialog!)}>
+              <SelectTrigger className="w-full sm:w-[300px]">
+                <SelectValue placeholder="Todas as Modalidades" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas (Visão Geral)</SelectItem>
+                {currentOlympiadActivities.map(a => (
+                  <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           {participants.length > 0 ? (
             <Table>
-              <TableHeader><TableRow><TableHead>#</TableHead><TableHead>Nome</TableHead><TableHead>E-mail</TableHead></TableRow></TableHeader>
-              <TableBody>{participants.map((p, i) => <TableRow key={i}><TableCell>{i + 1}</TableCell><TableCell>{p.nome}</TableCell><TableCell className="text-sm">{p.email}</TableCell></TableRow>)}</TableBody>
+              <TableHeader><TableRow><TableHead>#</TableHead><TableHead>Nome</TableHead><TableHead>E-mail</TableHead><TableHead>Modalidade(s)</TableHead><TableHead className="text-right">Ação / Presença</TableHead></TableRow></TableHeader>
+              <TableBody>{participants.map((p, i) => (
+                <TableRow key={i}>
+                  <TableCell>{i + 1}</TableCell>
+                  <TableCell>{p.nome}</TableCell>
+                  <TableCell className="text-sm">{p.email}</TableCell>
+                  <TableCell className="text-sm"><Badge variant="outline">{p.modalidades}</Badge></TableCell>
+                  <TableCell className="text-right">
+                    <Button size="sm" variant={p.presente ? "default" : "outline"} onClick={() => togglePresence(p.user_id, participantsDialog!, p.presente, p.attendance_id, p.activity_id)}>
+                      {p.presente ? "✓ Presente" : "Marcar"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}</TableBody>
             </Table>
           ) : <p className="text-sm text-muted-foreground text-center py-4">Nenhum participante inscrito</p>}
-        </DialogContent>
-      </Dialog>
-
-      {/* Attendance Dialog */}
-      <Dialog open={!!attendanceDialog} onOpenChange={() => setAttendanceDialog(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-display flex items-center justify-between">
-              Lançar Presença
-              <Button size="sm" variant="outline" onClick={() => printList(olympiads.find(o => o.id === attendanceDialog)?.nome || "")}><Printer className="mr-1 h-3 w-3" />Imprimir</Button>
-            </DialogTitle>
-          </DialogHeader>
-          {participants.length > 0 ? (
-            <Table>
-              <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Presença</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {participants.map((p, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{p.nome}</TableCell>
-                    <TableCell>
-                      <Button size="sm" variant={p.presente ? "default" : "outline"} onClick={() => togglePresence(p.user_id, attendanceDialog!, p.presente, p.attendance_id)}>
-                        {p.presente ? "✓ Presente" : "Marcar"}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : <p className="text-sm text-muted-foreground text-center py-4">Nenhum participante</p>}
         </DialogContent>
       </Dialog>
     </div>

@@ -48,30 +48,43 @@ export type Database = {
       }
       attendance: {
         Row: {
+          activity_id: string | null
           created_at: string
-          data: string | null
           id: string
-          olympiad_id: string
+          olympiad_id: string | null
           presente: boolean | null
-          user_id: string
+          updated_at: string
+          user_id: string | null
+          workshop_id: string | null
         }
         Insert: {
+          activity_id?: string | null
           created_at?: string
-          data?: string | null
           id?: string
-          olympiad_id: string
+          olympiad_id?: string | null
           presente?: boolean | null
-          user_id: string
+          updated_at?: string
+          user_id?: string | null
+          workshop_id?: string | null
         }
         Update: {
+          activity_id?: string | null
           created_at?: string
-          data?: string | null
           id?: string
-          olympiad_id?: string
+          olympiad_id?: string | null
           presente?: boolean | null
-          user_id?: string
+          updated_at?: string
+          user_id?: string | null
+          workshop_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "attendance_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "olympiad_activities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "attendance_olympiad_id_fkey"
             columns: ["olympiad_id"]
@@ -79,7 +92,48 @@ export type Database = {
             referencedRelation: "olympiads"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "attendance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      certificate_templates: {
+        Row: {
+          cor_primaria: string | null
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          texto_padrao: string | null
+          tipo: string
+        }
+        Insert: {
+          cor_primaria?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          texto_padrao?: string | null
+          tipo: string
+        }
+        Update: {
+          cor_primaria?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          texto_padrao?: string | null
+          tipo?: string
+        }
+        Relationships: []
       }
       olympiad_activities: {
         Row: {
@@ -128,10 +182,58 @@ export type Database = {
           },
         ]
       }
+      olympiad_enrollments: {
+        Row: {
+          activity_id: string | null
+          created_at: string
+          id: string
+          olympiad_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_id?: string | null
+          created_at?: string
+          id?: string
+          olympiad_id: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string | null
+          created_at?: string
+          id?: string
+          olympiad_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "olympiad_enrollments_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "olympiad_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "olympiad_enrollments_olympiad_id_fkey"
+            columns: ["olympiad_id"]
+            isOneToOne: false
+            referencedRelation: "olympiads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "olympiad_enrollments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       olympiads: {
         Row: {
           bairro: string | null
           cep: string | null
+          certificates_released: boolean | null
+          certificate_template_id: string | null
           cidade: string | null
           complemento: string | null
           created_at: string
@@ -154,10 +256,14 @@ export type Database = {
           rua: string | null
           status: string | null
           tipo: string | null
+          total_horas: number | null
+          updated_at: string
         }
         Insert: {
           bairro?: string | null
           cep?: string | null
+          certificates_released?: boolean | null
+          certificate_template_id?: string | null
           cidade?: string | null
           complemento?: string | null
           created_at?: string
@@ -180,10 +286,14 @@ export type Database = {
           rua?: string | null
           status?: string | null
           tipo?: string | null
+          total_horas?: number | null
+          updated_at?: string
         }
         Update: {
           bairro?: string | null
           cep?: string | null
+          certificates_released?: boolean | null
+          certificate_template_id?: string | null
           cidade?: string | null
           complemento?: string | null
           created_at?: string
@@ -206,8 +316,18 @@ export type Database = {
           rua?: string | null
           status?: string | null
           tipo?: string | null
+          total_horas?: number | null
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "olympiads_certificate_template_id_fkey"
+            columns: ["certificate_template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_files: {
         Row: {
@@ -336,35 +456,55 @@ export type Database = {
       }
       support_materials: {
         Row: {
-          arquivo_url: string | null
+          activity_id: string | null
+          arquivo_url: string
           created_at: string
           descricao: string | null
           id: string
           olympiad_id: string | null
           titulo: string
+          workshop_id: string | null
         }
         Insert: {
-          arquivo_url?: string | null
+          activity_id?: string | null
+          arquivo_url: string
           created_at?: string
           descricao?: string | null
           id?: string
           olympiad_id?: string | null
           titulo: string
+          workshop_id?: string | null
         }
         Update: {
-          arquivo_url?: string | null
+          activity_id?: string | null
+          arquivo_url?: string
           created_at?: string
           descricao?: string | null
           id?: string
           olympiad_id?: string | null
           titulo?: string
+          workshop_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "support_materials_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "olympiad_activities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "support_materials_olympiad_id_fkey"
             columns: ["olympiad_id"]
             isOneToOne: false
             referencedRelation: "olympiads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_materials_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
             referencedColumns: ["id"]
           },
         ]
@@ -456,6 +596,7 @@ export type Database = {
       }
       workshops: {
         Row: {
+          certificates_released: boolean | null
           created_at: string
           data_fim: string | null
           data_inicio: string | null
@@ -469,9 +610,12 @@ export type Database = {
           nome: string
           olympiad_id: string
           professor: string | null
+          updated_at: string
           vagas: number | null
+          total_horas: number | null
         }
         Insert: {
+          certificates_released?: boolean | null
           created_at?: string
           data_fim?: string | null
           data_inicio?: string | null
@@ -485,9 +629,12 @@ export type Database = {
           nome: string
           olympiad_id: string
           professor?: string | null
+          updated_at?: string
           vagas?: number | null
+          total_horas?: number | null
         }
         Update: {
+          certificates_released?: boolean | null
           created_at?: string
           data_fim?: string | null
           data_inicio?: string | null
@@ -501,7 +648,9 @@ export type Database = {
           nome?: string
           olympiad_id?: string
           professor?: string | null
+          updated_at?: string
           vagas?: number | null
+          total_horas?: number | null
         }
         Relationships: [
           {

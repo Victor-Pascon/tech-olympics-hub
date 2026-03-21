@@ -9,22 +9,25 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Upload, FileText, X } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, FileText, X, Users, ClipboardList, Printer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type Workshop = {
-  id: string; nome: string; descricao: string | null; olympiad_id: string;
-  professor: string | null; vagas: number | null; local: string | null;
-  horario: string | null; material_apoio: string | null; material_estudo: string | null;
+  id: string; nome: string; descricao: string | null;
+  professor: string | null; horario: string | null; local: string | null;
+  vagas: number | null; olympiad_id: string | null; total_horas: number | null;
+  material_apoio: string | null; material_estudo: string | null;
   data_inicio: string | null; data_fim: string | null; dias_aulas: string | null;
+  olympiads?: { nome: string };
+  enrolled?: number;
 };
-type Olympiad = { id: string; nome: string };
+type Olympiad = { id: string; nome: string; };
 type WFile = { id: string; file_url: string; file_name: string; file_type: string; tipo: string };
 
 const emptyForm = {
-  nome: "", descricao: "", olympiad_id: "", professor: "", vagas: 30,
-  local: "", horario: "", material_apoio: "", material_estudo: "",
-  data_inicio: "", data_fim: "", dias_aulas: "",
+  nome: "", descricao: "", professor: "", data_inicio: "", data_fim: "",
+  horario: "", local: "", vagas: 30, olympiad_id: "none", total_horas: 0,
+  material_apoio: "", material_estudo: "", dias_aulas: "",
 };
 
 const WorkshopsTab = () => {
@@ -36,6 +39,8 @@ const WorkshopsTab = () => {
   const [form, setForm] = useState(emptyForm);
   const [files, setFiles] = useState<WFile[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [participantsDialog, setParticipantsDialog] = useState<Workshop | null>(null);
+  const [participantsList, setParticipantsList] = useState<any[]>([]);
 
   useEffect(() => { load(); }, []);
 
@@ -56,13 +61,48 @@ const WorkshopsTab = () => {
 
   const openNew = () => { setForm(emptyForm); setEditing(null); setFiles([]); setOpen(true); };
 
+  const loadParticipants = async (w: Workshop) => {
+    const { data } = await supabase.from("workshop_enrollments").select("profiles(id, nome, email, cpf)").eq("workshop_id", w.id);
+    const { data: attendance } = await supabase.from("attendance").select("*").eq("workshop_id", w.id);
+
+    if (data) {
+      const list = data.map((d: any) => d.profiles).filter(Boolean).map((p: any) => {
+        const att = attendance?.find(a => a.user_id === p.id);
+        return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id };
+      });
+      setParticipantsList(list);
+    }
+  };
+
+  const openParticipants = async (w: Workshop) => {
+    await loadParticipants(w);
+    setParticipantsDialog(w);
+  };
+
+  const togglePresence = async (userId: string, workshopId: string, currentPresent: boolean, attendanceId?: string) => {
+    if (attendanceId) {
+      await supabase.from("attendance").update({ presente: !currentPresent }).eq("id", attendanceId);
+    } else {
+      await supabase.from("attendance").insert({ user_id: userId, workshop_id: workshopId, presente: true });
+    }
+    const w = workshops.find(ws => ws.id === workshopId);
+    if (w) await loadParticipants(w);
+  };
+
+  const printList = (workshopName: string) => {
+    const pw = window.open("", "_blank"); if (!pw) return;
+    pw.document.write(`<html><head><title>Lista - ${workshopName}</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:8px;text-align:left}th{background:#eee}</style></head><body><h2>Lista de Presença - ${workshopName}</h2><p>Data: ${new Date().toLocaleDateString("pt-BR")}</p><table><tr><th>#</th><th>Nome</th><th>E-mail</th><th>Assinatura</th></tr>${participantsList.map((p, i) => `<tr><td>${i + 1}</td><td>${p.nome}</td><td>${p.email}</td><td style="width:200px"></td></tr>`).join("")}</table></body></html>`);
+    pw.document.close(); pw.print();
+  };
+
   const openEdit = async (w: Workshop) => {
     setForm({
-      nome: w.nome, descricao: w.descricao || "", olympiad_id: w.olympiad_id,
-      professor: w.professor || "", vagas: w.vagas || 30, local: w.local || "",
-      horario: w.horario || "", material_apoio: w.material_apoio || "",
-      material_estudo: w.material_estudo || "", data_inicio: w.data_inicio || "",
-      data_fim: w.data_fim || "", dias_aulas: w.dias_aulas || "",
+      nome: w.nome, descricao: w.descricao || "", professor: w.professor || "",
+      data_inicio: w.data_inicio || "", data_fim: w.data_fim || "",
+      horario: w.horario || "", local: w.local || "", vagas: w.vagas || 0,
+      olympiad_id: w.olympiad_id || "none", total_horas: (w as any).total_horas || 0,
+      material_apoio: w.material_apoio || "", material_estudo: w.material_estudo || "",
+      dias_aulas: w.dias_aulas || "",
     });
     setEditing(w.id);
     const { data } = await supabase.from("workshop_files").select("*").eq("workshop_id", w.id);
@@ -75,8 +115,10 @@ const WorkshopsTab = () => {
       toast({ title: "Nome e Olimpíada são obrigatórios", variant: "destructive" }); return;
     }
     const payload = {
-      ...form, vagas: form.vagas || 30,
+      ...form, vagas: form.vagas || 0,
       data_inicio: form.data_inicio || null, data_fim: form.data_fim || null,
+      olympiad_id: form.olympiad_id !== "none" ? form.olympiad_id : null,
+      total_horas: form.total_horas || 0,
     };
     if (editing) {
       await supabase.from("workshops").update(payload).eq("id", editing);
@@ -145,8 +187,9 @@ const WorkshopsTab = () => {
               <div className="space-y-1"><Label>Ministrante</Label><Input value={form.professor} onChange={e => setForm({ ...form, professor: e.target.value })} /></div>
               <div className="space-y-1"><Label>Vagas</Label><Input type="number" value={form.vagas} onChange={e => setForm({ ...form, vagas: parseInt(e.target.value) || 0 })} /></div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1"><Label>Local</Label><Input value={form.local} onChange={e => setForm({ ...form, local: e.target.value })} /></div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1"><Label>Vagas</Label><Input type="number" value={form.vagas} onChange={e => setForm({ ...form, vagas: parseInt(e.target.value) || 0 })} /></div>
+              <div className="space-y-1"><Label>Carga Horária</Label><Input type="number" value={form.total_horas} onChange={e => setForm({ ...form, total_horas: parseInt(e.target.value) || 0 })} /></div>
               <div className="space-y-1"><Label>Horário</Label><Input value={form.horario} onChange={e => setForm({ ...form, horario: e.target.value })} placeholder="08:00 - 12:00" /></div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -201,6 +244,48 @@ const WorkshopsTab = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!participantsDialog} onOpenChange={(o) => { if (!o) setParticipantsDialog(null); }}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center justify-between">
+              Inscritos - {participantsDialog?.nome}
+              <Button size="sm" variant="outline" onClick={() => printList(participantsDialog?.nome || "")}><Printer className="mr-1 h-3 w-3" />Imprimir Lista</Button>
+            </DialogTitle>
+          </DialogHeader>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>E-mail</TableHead>
+                <TableHead>CPF</TableHead>
+                <TableHead className="text-right">Ação / Presença</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {participantsList.map((p, i) => (
+                <TableRow key={p.id || i}>
+                  <TableCell>{i + 1}</TableCell>
+                  <TableCell className="font-medium">{p.nome}</TableCell>
+                  <TableCell>{p.email}</TableCell>
+                  <TableCell>{p.cpf || "—"}</TableCell>
+                  <TableCell className="text-right">
+                    <Button size="sm" variant={p.presente ? "default" : "outline"} onClick={() => togglePresence(p.user_id, participantsDialog!.id, p.presente, p.attendance_id)}>
+                      {p.presente ? "✓ Presente" : "Marcar"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {participantsList.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum inscrito ainda.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </DialogContent>
+      </Dialog>
+
       <Card className="card-cyber border-0 overflow-hidden">
         <Table>
           <TableHeader>
@@ -218,8 +303,15 @@ const WorkshopsTab = () => {
                 <TableCell>{ws.vagas}</TableCell>
                 <TableCell>{ws.enrolled}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(ws)}><Edit className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(ws.id)}><Trash2 className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" title="Ver Inscritos e Lançar Presença" onClick={() => openParticipants(ws)}>
+                    <Users className="h-4 w-4 text-accent" />
+                  </Button>
+                  <Button variant="ghost" size="icon" title="Editar" onClick={() => openEdit(ws)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" title="Excluir" className="text-destructive" onClick={() => remove(ws.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

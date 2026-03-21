@@ -9,8 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Eye, EyeOff, Upload, FileText, X, MapPin } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, Upload, FileText, X, MapPin, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import MDEditor from '@uiw/react-md-editor';
+
 
 type Post = {
   id: string; titulo: string; conteudo: string | null; imagem_url: string | null;
@@ -92,6 +94,25 @@ const PostsTab = () => {
     toast({ title: "Arquivo enviado" });
   };
 
+  const uploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast({ title: "Arquivo excede 5MB", variant: "destructive" }); return; }
+    
+    setUploading(true);
+    const path = `posts/covers/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+    const { error } = await supabase.storage.from("uploads").upload(path, file);
+    
+    if (error) { 
+      toast({ title: "Erro no upload da capa", description: error.message, variant: "destructive" }); 
+    } else {
+      const { data: urlData } = supabase.storage.from("uploads").getPublicUrl(path);
+      setForm({ ...form, imagem_url: urlData.publicUrl });
+      toast({ title: "Capa definida com sucesso!" });
+    }
+    setUploading(false);
+  };
+
   const removeFile = async (fileId: string) => {
     await supabase.from("post_files").delete().eq("id", fileId);
     if (editing) {
@@ -109,12 +130,31 @@ const PostsTab = () => {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto w-full">
           <DialogHeader><DialogTitle className="font-display">{editing ? "Editar Postagem" : "Nova Postagem"}</DialogTitle></DialogHeader>
           <div className="grid gap-4">
             <div className="space-y-1"><Label>Título *</Label><Input value={form.titulo} onChange={e => setForm({ ...form, titulo: e.target.value })} /></div>
-            <div className="space-y-1"><Label>Conteúdo</Label><Textarea value={form.conteudo} onChange={e => setForm({ ...form, conteudo: e.target.value })} className="min-h-[150px]" /></div>
-            <div className="space-y-1"><Label>URL da Imagem</Label><Input value={form.imagem_url} onChange={e => setForm({ ...form, imagem_url: e.target.value })} /></div>
+            
+            <div className="space-y-1" data-color-mode="dark">
+              <Label>Conteúdo (Markdown)</Label>
+              <MDEditor 
+                value={form.conteudo || ""} 
+                onChange={(val) => setForm({ ...form, conteudo: val || "" })} 
+                height={350}
+                className="bg-background border-border" 
+              />
+            </div>
+            
+            <div className="space-y-1">
+              <Label>URL da Imagem de Capa</Label>
+              <div className="flex gap-2">
+                <Input value={form.imagem_url} onChange={e => setForm({ ...form, imagem_url: e.target.value })} placeholder="https://... ou faça upload" className="flex-1" />
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 text-sm transition-colors">
+                  <ImageIcon className="h-4 w-4" /> {uploading ? "..." : "Upload Capa"}
+                  <input type="file" className="hidden" accept="image/*" onChange={uploadCover} disabled={uploading} />
+                </label>
+              </div>
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1"><Label>Categoria</Label><Input value={form.categoria} onChange={e => setForm({ ...form, categoria: e.target.value })} placeholder="Ex: Novidades" /></div>
               <div className="space-y-1"><Label>Tags (vírgula)</Label><Input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="Oficina, Novidade" /></div>

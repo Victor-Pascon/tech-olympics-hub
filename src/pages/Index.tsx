@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, UserPlus, Calendar, MapPin, BookOpen, Trophy } from "lucide-react";
+import MDEditor from "@uiw/react-md-editor";
 
 type Post = {
   id: string; titulo: string; conteudo: string | null; imagem_url: string | null;
@@ -56,7 +57,7 @@ const Index = () => {
           <div className="mx-auto max-w-3xl text-center">
             <div className="mb-8 flex justify-center">
               <img
-                src="/logos_tech_defense.jpeg"
+                src="/logo-tech-defense-sem_fundo.jpeg"
                 alt="Olimpíada Tech Defense"
                 className="h-28 w-28 rounded-2xl object-cover shadow-lg shadow-primary/30 ring-2 ring-primary/20 lg:h-36 lg:w-36 animate-glow-pulse"
               />
@@ -159,8 +160,8 @@ const Index = () => {
                       {new Date(post.created_at).toLocaleDateString("pt-BR")}
                     </span>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{post.conteudo}</p>
+                  <CardContent className="prose prose-sm prose-invert max-w-none" data-color-mode="dark">
+                    <MDEditor.Markdown source={post.conteudo || ""} style={{ backgroundColor: 'transparent' }} />
                   </CardContent>
                 </Card>
               ))}

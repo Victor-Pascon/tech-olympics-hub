@@ -11,6 +11,9 @@ import WorkshopsTab from "@/components/admin/WorkshopsTab";
 import PostsTab from "@/components/admin/PostsTab";
 import ReportsTab from "@/components/admin/ReportsTab";
 import UsersTab from "@/components/admin/UsersTab";
+import SupportMaterialsTab from "@/components/admin/SupportMaterialsTab";
+import CertificatesTab from "@/components/admin/CertificatesTab";
+import { Award } from "lucide-react";
 
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
@@ -54,6 +57,8 @@ const AdminDashboard = () => {
               <TabsTrigger value="olympiads" className="gap-1.5"><Trophy className="h-4 w-4" />Olimpíadas</TabsTrigger>
               <TabsTrigger value="workshops" className="gap-1.5"><BookOpen className="h-4 w-4" />Oficinas</TabsTrigger>
               <TabsTrigger value="posts" className="gap-1.5"><FileText className="h-4 w-4" />Postagens</TabsTrigger>
+              <TabsTrigger value="materials" className="gap-1.5"><FileText className="h-4 w-4" />Materiais de Apoio</TabsTrigger>
+              <TabsTrigger value="certificates" className="gap-1.5"><Award className="h-4 w-4" />Certificados</TabsTrigger>
               <TabsTrigger value="reports" className="gap-1.5"><BarChart3 className="h-4 w-4" />Relatórios</TabsTrigger>
               <TabsTrigger value="users" className="gap-1.5"><Users className="h-4 w-4" />Usuários</TabsTrigger>
             </TabsList>
@@ -62,6 +67,8 @@ const AdminDashboard = () => {
             <TabsContent value="olympiads"><OlympiadsTab /></TabsContent>
             <TabsContent value="workshops"><WorkshopsTab /></TabsContent>
             <TabsContent value="posts"><PostsTab /></TabsContent>
+            <TabsContent value="materials"><SupportMaterialsTab /></TabsContent>
+            <TabsContent value="certificates"><CertificatesTab /></TabsContent>
             <TabsContent value="reports"><ReportsTab /></TabsContent>
             <TabsContent value="users"><UsersTab /></TabsContent>
           </Tabs>

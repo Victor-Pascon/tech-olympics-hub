@@ -37,7 +37,7 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
           <img
-            src="/logos_tech_defense.jpeg"
+            src="/logo-tech-defense-sem_fundo.jpeg"
             alt="Olimpíada Tech Defense"
             className="h-10 w-10 rounded-md object-cover ring-1 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300"
           />
