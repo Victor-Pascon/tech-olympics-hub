@@ -69,6 +69,18 @@ const Login = () => {
                 <Button type="submit" size="lg" className="btn-cyber w-full font-display tracking-wide" disabled={loading}>
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
+              <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={async () => {
+                    if (!email) { toast({ title: "Informe seu e-mail", description: "Digite seu e-mail antes de solicitar a recuperação.", variant: "destructive" }); return; }
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+                    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+                    toast({ title: "E-mail enviado!", description: "Verifique sua caixa de entrada para redefinir a senha." });
+                  }}
+                >
+                  Esqueceu a senha?
+                </button>
                 <p className="text-sm text-muted-foreground">
                   Não tem conta?{" "}
                   <Link to="/cadastro" className="text-primary hover:underline">Cadastre-se</Link>
