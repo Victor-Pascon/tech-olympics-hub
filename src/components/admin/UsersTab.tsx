@@ -64,6 +64,9 @@ const UsersTab = () => {
     try {
       const { data, error } = await supabase.functions.invoke("create-admin-user", {
         body: { nome: form.nome, email: form.email, password: form.password, matricula: form.matricula, funcao: form.funcao },
+        headers: {
+          "x-supabase-key": (supabase as any).supabaseKey || "",
+        }
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
