@@ -50,31 +50,31 @@ export type Database = {
         Row: {
           activity_id: string | null
           created_at: string
+          data: string | null
           id: string
-          olympiad_id: string | null
+          olympiad_id: string
           presente: boolean | null
-          updated_at: string
-          user_id: string | null
+          user_id: string
           workshop_id: string | null
         }
         Insert: {
           activity_id?: string | null
           created_at?: string
+          data?: string | null
           id?: string
-          olympiad_id?: string | null
+          olympiad_id: string
           presente?: boolean | null
-          updated_at?: string
-          user_id?: string | null
+          user_id: string
           workshop_id?: string | null
         }
         Update: {
           activity_id?: string | null
           created_at?: string
+          data?: string | null
           id?: string
-          olympiad_id?: string | null
+          olympiad_id?: string
           presente?: boolean | null
-          updated_at?: string
-          user_id?: string | null
+          user_id?: string
           workshop_id?: string | null
         }
         Relationships: [
@@ -90,13 +90,6 @@ export type Database = {
             columns: ["olympiad_id"]
             isOneToOne: false
             referencedRelation: "olympiads"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -225,7 +218,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       olympiads: {
@@ -233,7 +226,6 @@ export type Database = {
           bairro: string | null
           cep: string | null
           certificates_released: boolean | null
-          certificate_template_id: string | null
           cidade: string | null
           complemento: string | null
           created_at: string
@@ -257,13 +249,11 @@ export type Database = {
           status: string | null
           tipo: string | null
           total_horas: number | null
-          updated_at: string
         }
         Insert: {
           bairro?: string | null
           cep?: string | null
           certificates_released?: boolean | null
-          certificate_template_id?: string | null
           cidade?: string | null
           complemento?: string | null
           created_at?: string
@@ -287,13 +277,11 @@ export type Database = {
           status?: string | null
           tipo?: string | null
           total_horas?: number | null
-          updated_at?: string
         }
         Update: {
           bairro?: string | null
           cep?: string | null
           certificates_released?: boolean | null
-          certificate_template_id?: string | null
           cidade?: string | null
           complemento?: string | null
           created_at?: string
@@ -317,17 +305,8 @@ export type Database = {
           status?: string | null
           tipo?: string | null
           total_horas?: number | null
-          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "olympiads_certificate_template_id_fkey"
-            columns: ["certificate_template_id"]
-            isOneToOne: false
-            referencedRelation: "certificate_templates"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       post_files: {
         Row: {
@@ -457,7 +436,7 @@ export type Database = {
       support_materials: {
         Row: {
           activity_id: string | null
-          arquivo_url: string
+          arquivo_url: string | null
           created_at: string
           descricao: string | null
           id: string
@@ -467,7 +446,7 @@ export type Database = {
         }
         Insert: {
           activity_id?: string | null
-          arquivo_url: string
+          arquivo_url?: string | null
           created_at?: string
           descricao?: string | null
           id?: string
@@ -477,7 +456,7 @@ export type Database = {
         }
         Update: {
           activity_id?: string | null
-          arquivo_url?: string
+          arquivo_url?: string | null
           created_at?: string
           descricao?: string | null
           id?: string
@@ -610,9 +589,8 @@ export type Database = {
           nome: string
           olympiad_id: string
           professor: string | null
-          updated_at: string
-          vagas: number | null
           total_horas: number | null
+          vagas: number | null
         }
         Insert: {
           certificates_released?: boolean | null
@@ -629,9 +607,8 @@ export type Database = {
           nome: string
           olympiad_id: string
           professor?: string | null
-          updated_at?: string
-          vagas?: number | null
           total_horas?: number | null
+          vagas?: number | null
         }
         Update: {
           certificates_released?: boolean | null
@@ -648,9 +625,8 @@ export type Database = {
           nome?: string
           olympiad_id?: string
           professor?: string | null
-          updated_at?: string
-          vagas?: number | null
           total_horas?: number | null
+          vagas?: number | null
         }
         Relationships: [
           {
