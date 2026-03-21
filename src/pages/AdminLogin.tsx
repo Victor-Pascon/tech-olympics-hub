@@ -99,11 +99,23 @@ const AdminLogin = () => {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-col gap-3">
                 <Button type="submit" size="lg" className="btn-cyber w-full font-display tracking-wide" disabled={loading}>
                   <Settings className="mr-2 h-4 w-4" />
                   {loading ? "Verificando..." : "Acessar Painel"}
                 </Button>
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={async () => {
+                    if (!email) { toast({ title: "Informe seu e-mail", description: "Digite seu e-mail antes de solicitar a recuperação.", variant: "destructive" }); return; }
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+                    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+                    toast({ title: "E-mail enviado!", description: "Verifique sua caixa de entrada para redefinir a senha." });
+                  }}
+                >
+                  Esqueceu a senha?
+                </button>
               </CardFooter>
             </form>
           </Card>

@@ -49,9 +49,10 @@ const ReportsTab = () => {
 
     let attendanceData: any[] = [];
     if (selectedOlympiad !== "all") {
-      let q = supabase.from("attendance").select("*").eq("olympiad_id", selectedOlympiad).in("user_id", userIds);
-      if (selectedDate) q = q.eq("data", selectedDate);
-      const { data } = await q;
+      let query = supabase.from("attendance").select("*").eq("olympiad_id", selectedOlympiad).in("user_id", userIds);
+      if (selectedDate) query = query.eq("data", selectedDate);
+      const { data } = await query as { data: any[] | null };
+
       attendanceData = data || [];
     }
 
