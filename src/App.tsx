@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import ParticipantDashboard from "./pages/ParticipantDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
