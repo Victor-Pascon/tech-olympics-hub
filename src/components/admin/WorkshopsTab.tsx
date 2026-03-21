@@ -83,7 +83,8 @@ const WorkshopsTab = () => {
     if (attendanceId) {
       await supabase.from("attendance").update({ presente: !currentPresent }).eq("id", attendanceId);
     } else {
-      await supabase.from("attendance").insert({ user_id: userId, workshop_id: workshopId, presente: true });
+      const w = workshops.find(ws => ws.id === workshopId);
+      await supabase.from("attendance").insert({ user_id: userId, workshop_id: workshopId, olympiad_id: w?.olympiad_id || "", presente: true });
     }
     const w = workshops.find(ws => ws.id === workshopId);
     if (w) await loadParticipants(w);
