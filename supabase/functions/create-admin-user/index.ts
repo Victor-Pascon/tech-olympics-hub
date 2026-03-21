@@ -21,16 +21,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    // Fallbacks for standard Supabase environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://zinlfatzabxwnzpyqwwh.supabase.co";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("APP_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl) throw new Error("SUPABASE_URL is missing");
+    if (!anonKey) throw new Error("SUPABASE_ANON_KEY is missing");
+    if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing (try adding APP_SERVICE_ROLE_KEY)");
 
     // Verify caller is admin using their JWT
-    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    const anonClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user: caller } } = await anonClient.auth.getUser();
-    if (!caller) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+    const { data: { user: caller }, error: callerError } = await anonClient.auth.getUser();
+    
+    if (callerError || !caller) {
+      return new Response(JSON.stringify({ error: "Não autorizado: Sessão inválida" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
