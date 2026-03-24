@@ -30,19 +30,12 @@ const Index = () => {
 
     if (data) {
       setPosts(data);
-      // Increment views for each post displayed
       for (const post of data) {
         supabase.rpc("has_role", { _user_id: "00000000-0000-0000-0000-000000000000", _role: "user" }).then(() => {
-          // Use a simple update to increment — not ideal but works without a custom function
         });
-        // We'll just call update directly; RLS allows public read but not update, 
-        // so we skip incrementing from the public page (it would need an edge function or DB function).
-        // For now, views are tracked when admin manages posts.
       }
     }
   };
-
-  
 
   const getTags = (tags: string | null): string[] => {
     if (!tags) return [];
@@ -51,7 +44,7 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* Hero with Matrix Background */}
+      {/* Hero - Chamada principal */}
       <section className="hero-matrix relative overflow-hidden py-24 lg:py-36">
         <div className="container relative z-10">
           <div className="mx-auto max-w-3xl text-center">
@@ -90,7 +83,7 @@ const Index = () => {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-[2]" />
       </section>
 
-      {/* Features / Sobre */}
+      {/* Sobre a Olimpíada */}
       <section className="py-20" id="sobre">
         <div className="container">
           <div className="mx-auto mb-14 max-w-2xl text-center">
@@ -121,7 +114,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Blog Posts */}
+      {/* Blog e Postagens */}
       <section className="hero-bg-animated circuit-pattern py-20" id="blog">
         <div className="container">
           <div className="mb-12 flex items-center justify-between">
@@ -174,14 +167,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Location / Contact */}
+      {/* Localização e Contato */}
       <section className="border-t border-border py-20" id="contato">
         <div className="container">
           <div className="grid gap-8 lg:grid-cols-2">
             <div>
               <h2 className="font-display mb-4 text-2xl font-bold">Localização & Contato</h2>
               <div className="space-y-4 text-muted-foreground">
-                <a href="https://maps.app.goo.gl/jWnVo1J8UMN5GVf59" target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 group/link hover:opacity-80 transition-opacity">
+                <a href="https://maps.app.goo.gl/fQkqXbQWU2mDKomn8" target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 group/link hover:opacity-80 transition-opacity">
                   <MapPin className="mt-0.5 h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium text-foreground group-hover/link:text-primary transition-colors">Instituto Federal de Sergipe</p>
@@ -199,7 +192,7 @@ const Index = () => {
             <div className="overflow-hidden rounded-lg border border-primary/10 glow-border">
               <iframe
                 title="Localização IFS Itabaiana"
-                src="https://www.google.com/maps?q=-10.6847,-37.4252&z=16&output=embed"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3920.5619057284703!2d-37.408899724959326!3d-10.691073089452532!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x70ffa62555555555%3A0x289810642e4e6213!2sIFS%20-%20Instituto%20Federal%20de%20Sergipe%20-%20Campus%20Itabaiana!5e0!3m2!1spt-BR!2sbr!4v1774360251729!5m2!1spt-BR!2sbr"
                 className="h-64 w-full lg:h-80"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
