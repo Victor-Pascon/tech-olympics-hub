@@ -14,8 +14,18 @@ const Footer = () => {
                 Tech <span className="text-primary">Defense</span>
               </span>
             </div>
-            <img src="/logo-ifs-sem_fundo.png" alt="IFS" className="h-10 w-10 rounded-md object-cover ring-1 ring-primary/20" />
-            <img src="/logo-fapitec-sem_fundo.png" alt="FAPITEC" className="h-10 w-10 rounded-md object-cover ring-1 ring-primary/20" />
+            <div className="flex items-center gap-3">
+              <img src="/logo-ifs-itabaiana.png" alt="IFS" className="h-10 w-10 bg-white p-1 rounded-md object-contain ring-1 ring-primary/20" />
+              <span className="font-display text-lg font-bold text-foreground">
+                IFS <span className="text-primary">Itabaiana</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <img src="/logo_fapitec-se.png" alt="FAPITEC" className="h-10 w-10 bg-white p-1 rounded-md object-contain ring-1 ring-primary/20" />
+              <span className="font-display text-lg font-bold text-foreground">
+                FAPITEC <span className="text-primary">SE</span>
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground">
               Olimpíada de tecnologia e segurança digital promovida pelo Instituto Federal de Sergipe — Campus Itabaiana.
             </p>
