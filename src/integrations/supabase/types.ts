@@ -52,9 +52,11 @@ export type Database = {
           created_at: string
           data: string | null
           id: string
+          lecture_id: string | null
           olympiad_id: string
           presente: boolean | null
           user_id: string
+          validation_code: string | null
           workshop_id: string | null
         }
         Insert: {
@@ -62,9 +64,11 @@ export type Database = {
           created_at?: string
           data?: string | null
           id?: string
+          lecture_id?: string | null
           olympiad_id: string
           presente?: boolean | null
           user_id: string
+          validation_code?: string | null
           workshop_id?: string | null
         }
         Update: {
@@ -72,9 +76,11 @@ export type Database = {
           created_at?: string
           data?: string | null
           id?: string
+          lecture_id?: string | null
           olympiad_id?: string
           presente?: boolean | null
           user_id?: string
+          validation_code?: string | null
           workshop_id?: string | null
         }
         Relationships: [
@@ -83,6 +89,13 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "olympiad_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
             referencedColumns: ["id"]
           },
           {
@@ -97,6 +110,160 @@ export type Database = {
             columns: ["workshop_id"]
             isOneToOne: false
             referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lectures: {
+        Row: {
+          id: string
+          nome: string
+          descricao: string | null
+          local: string | null
+          carga_horaria: number | null
+          data_evento: string | null
+          horario: string | null
+          vagas: number | null
+          certificates_released: boolean | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+          descricao?: string | null
+          local?: string | null
+          carga_horaria?: number | null
+          data_evento?: string | null
+          horario?: string | null
+          vagas?: number | null
+          certificates_released?: boolean | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+          descricao?: string | null
+          local?: string | null
+          carga_horaria?: number | null
+          data_evento?: string | null
+          horario?: string | null
+          vagas?: number | null
+          certificates_released?: boolean | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      lecture_speakers: {
+        Row: {
+          id: string
+          lecture_id: string
+          nome: string
+          email: string | null
+          bio: string | null
+          topico: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          lecture_id: string
+          nome: string
+          email?: string | null
+          bio?: string | null
+          topico?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          lecture_id?: string
+          nome?: string
+          email?: string | null
+          bio?: string | null
+          topico?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecture_speakers_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lecture_enrollments: {
+        Row: {
+          id: string
+          user_id: string
+          lecture_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          lecture_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          lecture_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecture_enrollments_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      olympiad_scores: {
+        Row: {
+          id: string
+          olympiad_id: string
+          activity_id: string
+          user_id: string
+          pontuacao: number | null
+          colocacao: number | null
+          observacoes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          olympiad_id: string
+          activity_id: string
+          user_id: string
+          pontuacao?: number | null
+          colocacao?: number | null
+          observacoes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          olympiad_id?: string
+          activity_id?: string
+          user_id?: string
+          pontuacao?: number | null
+          colocacao?: number | null
+          observacoes?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "olympiad_scores_olympiad_id_fkey"
+            columns: ["olympiad_id"]
+            isOneToOne: false
+            referencedRelation: "olympiads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "olympiad_scores_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "olympiad_activities"
             referencedColumns: ["id"]
           },
         ]

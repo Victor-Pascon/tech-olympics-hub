@@ -19,6 +19,7 @@ const CertificatesTab = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [olympiads, setOlympiads] = useState<any[]>([]);
   const [workshops, setWorkshops] = useState<any[]>([]);
+  const [lectures, setLectures] = useState<any[]>([]);
 
   const [form, setForm] = useState({ tipo: "", texto_padrao: "", cor_primaria: "#00ffcc", logo_url: "" });
   const [uploading, setUploading] = useState(false);
@@ -26,14 +27,16 @@ const CertificatesTab = () => {
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    const [tRes, oRes, wRes] = await Promise.all([
+    const [tRes, oRes, wRes, lRes] = await Promise.all([
       supabase.from("certificate_templates").select("*").order("created_at"),
       supabase.from("olympiads").select("id, nome, certificates_released, total_horas"),
-      supabase.from("workshops").select("id, nome, certificates_released, total_horas, olympiad_id")
+      supabase.from("workshops").select("id, nome, certificates_released, total_horas, olympiad_id"),
+      supabase.from("lectures").select("id, nome, certificates_released, carga_horaria"),
     ]);
     if (tRes.data) setTemplates(tRes.data as any);
     if (oRes.data) setOlympiads(oRes.data);
     if (wRes.data) setWorkshops(wRes.data);
+    if (lRes.data) setLectures(lRes.data);
   };
 
   const uploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,6 +159,30 @@ const CertificatesTab = () => {
                       <TableCell className="text-right">
                         <Button size="sm" variant={w.certificates_released ? "default" : "outline"} onClick={() => toggleRelease("workshops", w.id, !!w.certificates_released)}>
                           {w.certificates_released ? "Sim" : "Não"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card className="card-cyber border-0">
+            <CardHeader>
+              <CardTitle className="font-display text-sm flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-purple-400" /> Liberação - Palestras</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader><TableRow><TableHead>Palestra</TableHead><TableHead className="w-24">CH</TableHead><TableHead className="text-right">Liberado?</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {lectures.map(l => (
+                    <TableRow key={l.id}>
+                      <TableCell className="text-sm font-medium">{l.nome}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{l.carga_horaria || 0}h</TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" variant={l.certificates_released ? "default" : "outline"} onClick={() => toggleRelease("lectures" as any, l.id, !!l.certificates_released)}>
+                          {l.certificates_released ? "Sim" : "Não"}
                         </Button>
                       </TableCell>
                     </TableRow>

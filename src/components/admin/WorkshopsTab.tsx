@@ -62,16 +62,18 @@ const WorkshopsTab = () => {
   const openNew = () => { setForm(emptyForm); setEditing(null); setFiles([]); setOpen(true); };
 
   const loadParticipants = async (w: Workshop) => {
-    const { data } = await supabase.from("workshop_enrollments").select("profiles(id, nome, email, cpf)").eq("workshop_id", w.id);
+    const { data: enrollments } = await supabase.from("workshop_enrollments").select("user_id").eq("workshop_id", w.id);
+    if (!enrollments?.length) { setParticipantsList([]); return; }
+
+    const userIds = [...new Set(enrollments.map(e => e.user_id))];
+    const { data: profiles } = await supabase.from("profiles").select("id, nome, email, cpf").in("id", userIds);
     const { data: attendance } = await supabase.from("attendance").select("*").eq("workshop_id", w.id);
 
-    if (data) {
-      const list = data.map((d: any) => d.profiles).filter(Boolean).map((p: any) => {
-        const att = attendance?.find(a => a.user_id === p.id);
-        return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id };
-      });
-      setParticipantsList(list);
-    }
+    const list = (profiles || []).map((p: any) => {
+      const att = attendance?.find(a => a.user_id === p.id);
+      return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id };
+    });
+    setParticipantsList(list);
   };
 
   const openParticipants = async (w: Workshop) => {

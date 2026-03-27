@@ -38,6 +38,7 @@ const Footer = () => {
               <Link to="/" className="hover:text-primary transition-colors duration-300">Início</Link>
               <Link to="/cadastro" className="hover:text-primary transition-colors duration-300">Cadastre-se</Link>
               <Link to="/login" className="hover:text-primary transition-colors duration-300">Área do Participante</Link>
+              <Link to="/validar" className="hover:text-primary transition-colors duration-300">Validar Certificado</Link>
             </nav>
           </div>
 

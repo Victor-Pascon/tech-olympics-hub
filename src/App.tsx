@@ -11,6 +11,7 @@ import ParticipantDashboard from "./pages/ParticipantDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import ResetPassword from "./pages/ResetPassword";
+import CertificateValidation from "./pages/CertificateValidation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/validar" element={<CertificateValidation />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -7,14 +7,148 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   LayoutDashboard, BookOpen, MapPin, FileText, User,
-  Calendar, Clock, GraduationCap, Download, Trophy, Target, Award
+  Calendar, Clock, GraduationCap, Download, Trophy, Target, Award, Mic, Eye, EyeOff, Check, X as XIcon, Medal, Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+
+const ESTADOS_BR = [
+  "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
+  "PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"
+];
+
+const passwordChecks = (pwd: string) => [
+  { label: "Mínimo 6 caracteres", ok: pwd.length >= 6 },
+  { label: "Letra minúscula (a-z)", ok: /[a-z]/.test(pwd) },
+  { label: "Letra maiúscula (A-Z)", ok: /[A-Z]/.test(pwd) },
+  { label: "Número (0-9)", ok: /\d/.test(pwd) },
+  { label: "Caractere especial (!@#$...)", ok: /[^A-Za-z0-9]/.test(pwd) },
+];
+
+const MEDAL_COLORS_P: Record<number, string> = { 1: "text-yellow-400", 2: "text-gray-300", 3: "text-amber-600" };
+
+const ParticipantRankingView = ({ enrolledOlympiadIds, enrolledModalityIds, olympiads, activities }: {
+  enrolledOlympiadIds: string[]; enrolledModalityIds: string[]; olympiads: any[]; activities: any[];
+}) => {
+  const [selectedOly, setSelectedOly] = useState<string>("");
+  const [selectedAct, setSelectedAct] = useState<string>("");
+  const [ranking, setRanking] = useState<any[]>([]);
+  const [loadingRank, setLoadingRank] = useState(false);
+
+  const myOlympiads = olympiads.filter(o => enrolledOlympiadIds.includes(o.id));
+  const myActivities = activities.filter(a => enrolledModalityIds.includes(a.id) && a.olympiad_id === selectedOly);
+
+  const loadRanking = async (actId: string) => {
+    setSelectedAct(actId);
+    if (!selectedOly || !actId) return;
+    setLoadingRank(true);
+    const { data: scores } = await (supabase.from("olympiad_scores") as any)
+      .select("user_id, pontuacao, colocacao")
+      .eq("olympiad_id", selectedOly)
+      .eq("activity_id", actId)
+      .order("colocacao", { ascending: true });
+
+    if (!scores?.length) { setRanking([]); setLoadingRank(false); return; }
+
+    const userIds = scores.map((s: any) => s.user_id);
+    const { data: profiles } = await supabase.from("profiles").select("id, nome").in("id", userIds);
+    const profileMap = new Map((profiles || []).map((p: any) => [p.id, p.nome]));
+
+    setRanking(scores.map((s: any) => ({ ...s, nome: profileMap.get(s.user_id) || "Participante" })));
+    setLoadingRank(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 mb-2">
+        <Trophy className="h-5 w-5 text-yellow-400" />
+        <h3 className="text-lg font-display font-semibold text-white">Ranking da Olimpíada</h3>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
+        <div className="space-y-1">
+          <Label>Olimpíada</Label>
+          <Select value={selectedOly} onValueChange={(v) => { setSelectedOly(v); setSelectedAct(""); setRanking([]); }}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{myOlympiads.map(o => <SelectItem key={o.id} value={o.id}>{o.nome}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label>Modalidade</Label>
+          <Select value={selectedAct} onValueChange={loadRanking} disabled={!selectedOly}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>{myActivities.map(a => <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {loadingRank && <p className="text-sm text-muted-foreground">Carregando ranking...</p>}
+
+      {!loadingRank && selectedAct && ranking.length === 0 && (
+        <Card className="card-cyber border-0 p-8 text-center">
+          <Trophy className="h-10 w-10 mx-auto mb-3 opacity-20 text-muted-foreground" />
+          <p className="text-muted-foreground text-sm">O ranking desta modalidade ainda não foi publicado.</p>
+        </Card>
+      )}
+
+      {ranking.length > 0 && (
+        <>
+          {/* Podium for Top 3 */}
+          <div className="grid gap-3 sm:grid-cols-3 max-w-xl mx-auto">
+            {ranking.slice(0, 3).map((r: any) => {
+              const bgColors: Record<number, string> = {
+                1: "bg-yellow-500/10 border-yellow-500/50",
+                2: "bg-gray-400/10 border-gray-400/40",
+                3: "bg-amber-600/10 border-amber-600/40",
+              };
+              return (
+                <div key={r.user_id} className={`rounded-lg border p-4 text-center ${bgColors[r.colocacao] || "bg-muted/10 border-border"}`}>
+                  <Crown className={`h-6 w-6 mx-auto mb-1 ${MEDAL_COLORS_P[r.colocacao]}`} />
+                  <span className="font-display text-xl font-bold">{r.colocacao}º</span>
+                  <p className="font-medium text-sm mt-1 truncate">{r.nome}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{r.pontuacao} pts</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Full Table */}
+          <Card className="card-cyber border-0 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-primary/10">
+                  <TableHead className="w-16">#</TableHead>
+                  <TableHead>Participante</TableHead>
+                  <TableHead className="text-right">Pontuação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ranking.map((r: any) => (
+                  <TableRow key={r.user_id} className="border-primary/5">
+                    <TableCell>
+                      {r.colocacao <= 3 ? (
+                        <Crown className={`h-4 w-4 ${MEDAL_COLORS_P[r.colocacao]}`} />
+                      ) : (
+                        <span className="text-muted-foreground font-mono">{r.colocacao}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{r.nome}</TableCell>
+                    <TableCell className="text-right font-mono">{r.pontuacao}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+};
 
 const ParticipantDashboard = () => {
   const { user } = useAuth();
@@ -23,19 +157,29 @@ const ParticipantDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const [profile, setProfile] = useState<any>(null);
+  const [profileForm, setProfileForm] = useState<any>({});
+  const [savingProfile, setSavingProfile] = useState(false);
   const [olympiads, setOlympiads] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]); // Modalities
+  const [activities, setActivities] = useState<any[]>([]);
   const [workshops, setWorkshops] = useState<any[]>([]);
+  const [lectures, setLectures] = useState<any[]>([]);
+  const [lectureSpeakers, setLectureSpeakers] = useState<any[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   
   const [enrollments, setEnrollments] = useState<any[]>([]);
   const [enrolledOlympiadIds, setEnrolledOlympiadIds] = useState<string[]>([]);
   const [enrolledModalityIds, setEnrolledModalityIds] = useState<string[]>([]);
   const [enrolledWorkshopIds, setEnrolledWorkshopIds] = useState<string[]>([]);
+  const [enrolledLectureIds, setEnrolledLectureIds] = useState<string[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
 
-  // Dialog state
+  // Password
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [changingPass, setChangingPass] = useState(false);
+
   const [enrollOlympiadId, setEnrollOlympiadId] = useState<string | null>(null);
 
   const loadData = async () => {
@@ -44,15 +188,18 @@ const ParticipantDashboard = () => {
 
     try {
       const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      if (prof) setProfile(prof);
+      if (prof) { setProfile(prof); setProfileForm({ ...prof }); }
 
-      const [olyRes, actRes, wsRes, matRes, enrollOlyRes, enrollWsRes, attRes, tplRes] = await Promise.all([
+      const [olyRes, actRes, wsRes, lecRes, spkRes, matRes, enrollOlyRes, enrollWsRes, enrollLecRes, attRes, tplRes] = await Promise.all([
         supabase.from("olympiads").select("*").order("created_at", { ascending: false }),
         supabase.from("olympiad_activities").select("*"),
         supabase.from("workshops").select("*").order("created_at", { ascending: false }),
+        supabase.from("lectures").select("*").order("created_at", { ascending: false }),
+        supabase.from("lecture_speakers").select("*"),
         supabase.from("support_materials").select("*"),
         supabase.from("olympiad_enrollments").select("*").eq("user_id", user.id),
         supabase.from("workshop_enrollments").select("workshop_id").eq("user_id", user.id),
+        supabase.from("lecture_enrollments").select("lecture_id").eq("user_id", user.id),
         supabase.from("attendance").select("*").eq("user_id", user.id).eq("presente", true),
         supabase.from("certificate_templates").select("*")
       ]);
@@ -60,12 +207,15 @@ const ParticipantDashboard = () => {
       setOlympiads(olyRes.data || []);
       setActivities(actRes.data || []);
       setWorkshops(wsRes.data || []);
+      setLectures(lecRes.data || []);
+      setLectureSpeakers(spkRes.data || []);
       setMaterials(matRes.data || []);
       
       setEnrollments(enrollOlyRes.data || []);
       setEnrolledOlympiadIds(enrollOlyRes.data?.map(e => e.olympiad_id) || []);
       setEnrolledModalityIds(enrollOlyRes.data?.map(e => e.activity_id).filter(Boolean) || []);
       setEnrolledWorkshopIds(enrollWsRes.data?.map(e => e.workshop_id) || []);
+      setEnrolledLectureIds(enrollLecRes.data?.map(e => e.lecture_id) || []);
       
       setAttendance(attRes.data || []);
       setTemplates(tplRes.data || []);
@@ -85,9 +235,7 @@ const ParticipantDashboard = () => {
     if (!user) return;
     try {
       const { error } = await supabase.from("olympiad_enrollments").insert({
-        user_id: user.id,
-        olympiad_id: olympiadId,
-        activity_id: activityId
+        user_id: user.id, olympiad_id: olympiadId, activity_id: activityId
       });
       if (error) throw error;
       toast({ title: "Inscrição realizada!", description: "Você foi inscrito na modalidade com sucesso." });
@@ -101,10 +249,7 @@ const ParticipantDashboard = () => {
   const handleEnrollWorkshop = async (workshopId: string) => {
     if (!user) return;
     try {
-      const { error } = await supabase.from("workshop_enrollments").insert({
-        user_id: user.id,
-        workshop_id: workshopId
-      });
+      const { error } = await supabase.from("workshop_enrollments").insert({ user_id: user.id, workshop_id: workshopId });
       if (error) throw error;
       toast({ title: "Inscrição realizada!", description: "Você foi inscrito na oficina com sucesso." });
       loadData();
@@ -113,8 +258,52 @@ const ParticipantDashboard = () => {
     }
   };
 
+  const handleEnrollLecture = async (lectureId: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase.from("lecture_enrollments").insert({ user_id: user.id, lecture_id: lectureId });
+      if (error) throw error;
+      toast({ title: "Inscrição realizada!", description: "Você foi inscrito na palestra com sucesso." });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Erro na inscrição", description: error.message, variant: "destructive" });
+    }
+  };
+
   const updateProfile = async () => {
-    toast({ title: "Perfil atualizado", description: "Suas informações foram salvas." });
+    if (!user) return;
+    setSavingProfile(true);
+    const { error } = await supabase.from("profiles").update({
+      nome: profileForm.nome, telefone: profileForm.telefone, cpf: profileForm.cpf,
+      cep: profileForm.cep, estado: profileForm.estado, cidade: profileForm.cidade,
+      rua: profileForm.rua, numero: profileForm.numero,
+    }).eq("id", user.id);
+    setSavingProfile(false);
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Perfil atualizado", description: "Suas informações foram salvas com sucesso." });
+      loadData();
+    }
+  };
+
+  const changePassword = async () => {
+    const checks = passwordChecks(newPassword);
+    if (checks.some(c => !c.ok)) {
+      toast({ title: "Senha não atende os requisitos", variant: "destructive" }); return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "As senhas não coincidem", variant: "destructive" }); return;
+    }
+    setChangingPass(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPass(false);
+    if (error) {
+      toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Senha alterada com sucesso" });
+      setNewPassword(""); setConfirmPassword("");
+    }
   };
 
   if (loading) {
@@ -136,7 +325,7 @@ const ParticipantDashboard = () => {
     if (m.workshop_id) return enrolledWorkshopIds.includes(m.workshop_id);
     if (m.activity_id) return enrolledModalityIds.includes(m.activity_id);
     if (m.olympiad_id) return enrolledOlympiadIds.includes(m.olympiad_id);
-    return true; // General materials available to everyone
+    return true;
   });
 
   const groupedMaterials = visibleMaterials.reduce((acc, m) => {
@@ -151,19 +340,27 @@ const ParticipantDashboard = () => {
       const o = olympiads.find(x => x.id === m.olympiad_id);
       if (o) group = `Olimpíada: ${o.nome} (Geral)`;
     }
-    
     if (!acc[group]) acc[group] = [];
     acc[group].push(m);
     return acc;
   }, {} as Record<string, any[]>);
 
-  const availableCertificates: { id: string, tipo: string, nome: string, modalidade: string | null, horas: number }[] = [];
+  const availableCertificates: { id: string, tipo: string, nome: string, modalidade: string | null, horas: number, validation_code: string }[] = [];
   attendance.forEach(att => {
-    if (att.workshop_id) {
+    if (att.lecture_id) {
+      const lec = lectures.find(l => l.id === att.lecture_id);
+      if (lec && lec.certificates_released) {
+        availableCertificates.push({
+          id: `lec-${lec.id}`, tipo: "Palestra", nome: lec.nome, horas: lec.carga_horaria || 0, modalidade: null,
+          validation_code: (att as any).validation_code || "",
+        });
+      }
+    } else if (att.workshop_id) {
       const ws = workshops.find(w => w.id === att.workshop_id);
       if (ws && ws.certificates_released) {
         availableCertificates.push({
           id: `ws-${ws.id}`, tipo: "Oficina", nome: ws.nome, horas: ws.total_horas || 0, modalidade: null,
+          validation_code: (att as any).validation_code || "",
         });
       }
     } else if (att.olympiad_id) {
@@ -173,68 +370,108 @@ const ParticipantDashboard = () => {
         availableCertificates.push({
           id: `oly-${oly.id}-${att.activity_id || 'geral'}`, tipo: "Olimpíada", nome: oly.nome,
           horas: oly.total_horas || 0, modalidade: act ? act.nome : "Participação Geral",
+          validation_code: (att as any).validation_code || "",
         });
       }
     }
   });
 
   const printCertificate = (cert: any) => {
-    const template = templates.length > 0 ? templates[0] : { cor_primaria: "#00ffcc", logo_url: "", texto_padrao: "Certificamos que [NOME_ALUNO] participou ativamente no evento [NOME_CURSO] na modalidade [NOME_MODALIDADE] totalizando [HORAS] horas de carga horária." };
+    const template = templates.length > 0 ? templates[0] : { cor_primaria: "#00ffcc", logo_url: "", texto_padrao: "Certificamos que [NOME_ALUNO] participou do evento [NOME_CURSO] na modalidade [NOME_MODALIDADE], totalizando [HORAS] horas de atividades." };
     
-    let texto = template.texto_padrao || "";
-    texto = texto.replace(/\[NOME_ALUNO\]/g, profile?.nome || "");
-    texto = texto.replace(/\[NOME_CURSO\]/g, cert.nome);
-    texto = texto.replace(/\[NOME_MODALIDADE\]/g, cert.modalidade || "");
-    texto = texto.replace(/\[HORAS\]/g, cert.horas.toString());
+    let texto = (template.texto_padrao || "Certificamos que [NOME_ALUNO] participou do evento [NOME_CURSO] na modalidade [NOME_MODALIDADE], totalizando [HORAS] horas de atividades.");
+    texto = texto.replace(/\[NOME_ALUNO\]/g, profile?.nome || "Participante");
+    texto = texto.replace(/\[NOME_CURSO\]/g, cert.nome || "");
+    texto = texto.replace(/\[NOME_MODALIDADE\]/g, cert.modalidade || cert.tipo || "");
+    texto = texto.replace(/\[HORAS\]/g, String(cert.horas || 0));
+
+    // Use the stored validation code from DB
+    const formattedCode = cert.validation_code || "SEM-CODIGO";
+
+    const primaryColor = template.cor_primaria || "#00ffcc";
 
     const pw = window.open("", "_blank");
     if (!pw) return;
 
-    const html = `
-      <html>
-      <head>
-        <title>Certificado - ${cert.nome}</title>
-        <style>
-          body { margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'Arial', sans-serif; background: #222; }
-          @media print { body { background: none; } }
-          .cert-container { width: 1056px; height: 816px; background: white; padding: 40px; box-sizing: border-box; position: relative; border: 12px solid ${template.cor_primaria || '#333'}; text-align: center; overflow: hidden; }
-          .cert-bg { position: absolute; top:0; left:0; right:0; bottom:0; opacity: 0.05; background: url('${template.logo_url || ''}') center/50% no-repeat; pointer-events:none; }
-          .cert-title { font-size: 56px; font-weight: bold; color: ${template.cor_primaria || '#333'}; margin-top: 80px; text-transform: uppercase; letter-spacing: 6px; }
-          .cert-subtitle { font-size: 24px; color: #555; margin-top: 10px; font-weight: 300; letter-spacing: 2px; }
-          .cert-body { font-size: 26px; line-height: 1.8; margin: 80px 80px; color: #333; }
-          .cert-signature-box { position: absolute; bottom: 80px; left: 0; right: 0; display: flex; justify-content: space-around; }
-          .cert-signature { border-top: 1px solid #000; padding-top: 10px; width: 300px; font-size: 18px; color: #000; }
-          .cert-date { position: absolute; bottom: 40px; right: 60px; font-size: 14px; color: #666; }
-          .logo-img { height: 90px; position:absolute; top:40px; left:40px; }
-        </style>
-      </head>
-      <body>
-        <div class="cert-container">
-          <div class="cert-bg"></div>
-          ${template.logo_url ? `<img src="${template.logo_url}" class="logo-img" />` : ''}
-          <div class="cert-title">Certificado de Participação</div>
-          <div class="cert-subtitle">Este certificado é orgulhosamente apresentado a</div>
-          
-          <div class="cert-body">
-            <strong>${profile?.nome || ""}</strong><br/><br/>
-            ${texto}
-          </div>
-          
-          <div class="cert-signature-box">
-            <div class="cert-signature">Coordenação Geral</div>
-            <div class="cert-signature">Diretoria Tech Olympics</div>
-          </div>
-          <div class="cert-date">Emitido via Plataforma Sulis em: ${new Date().toLocaleDateString('pt-BR')}</div>
-        </div>
-        <script>
-          window.onload = () => { setTimeout(() => window.print(), 500); }
-        </script>
-      </body>
-      </html>
-    `;
+    const html = `<!DOCTYPE html>
+<html><head><title>Certificado - ${cert.nome}</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:#1a1a2e; font-family:'Inter',sans-serif; }
+  @media print { body { background:none; } @page { size:landscape; margin:0; } }
+  .cert {
+    width:1120px; height:790px; background:#fff; position:relative; overflow:hidden;
+    border:8px solid ${primaryColor}; box-shadow:inset 0 0 0 3px #fff, inset 0 0 0 5px ${primaryColor}33;
+  }
+  .cert-inner { padding:50px 70px 40px; height:100%; display:flex; flex-direction:column; }
+  .cert-watermark {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    opacity:0.04; width:400px; height:400px; pointer-events:none;
+    ${template.logo_url ? `background:url('${template.logo_url}') center/contain no-repeat;` : ""}
+  }
+  .cert-corner { position:absolute; width:60px; height:60px; border:3px solid ${primaryColor}44; }
+  .ct { top:15px; left:15px; border-right:none; border-bottom:none; }
+  .cr { top:15px; right:15px; border-left:none; border-bottom:none; }
+  .cb { bottom:15px; left:15px; border-right:none; border-top:none; }
+  .cd { bottom:15px; right:15px; border-left:none; border-top:none; }
+  .cert-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .cert-logo { height:70px; max-width:200px; object-fit:contain; }
+  .cert-header-text { text-align:right; font-size:11px; color:#888; line-height:1.5; }
+  .cert-divider { height:2px; background:linear-gradient(90deg,transparent,${primaryColor},transparent); margin:15px 0; }
+  .cert-title {
+    font-family:'Playfair Display',serif; font-size:38px; font-weight:700;
+    color:${primaryColor}; text-align:center; letter-spacing:4px; text-transform:uppercase; margin:15px 0 5px;
+  }
+  .cert-subtitle { font-size:14px; color:#777; text-align:center; letter-spacing:2px; margin-bottom:20px; }
+  .cert-recipient {
+    font-family:'Playfair Display',serif; font-size:28px; font-weight:700;
+    text-align:center; color:#222; margin:10px 0 5px; border-bottom:2px solid ${primaryColor}44; padding-bottom:8px;
+    display:inline-block; margin-left:auto; margin-right:auto;
+  }
+  .cert-recipient-wrap { text-align:center; }
+  .cert-body { font-size:14px; line-height:1.9; color:#444; text-align:center; margin:15px 40px; flex:1; }
+  .cert-footer { display:flex; justify-content:space-around; align-items:flex-end; margin-top:auto; padding-top:15px; }
+  .cert-sig { text-align:center; width:220px; }
+  .cert-sig-line { border-top:1px solid #333; padding-top:6px; font-size:12px; color:#333; font-weight:500; }
+  .cert-sig-role { font-size:10px; color:#777; margin-top:2px; }
+  .cert-meta { display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:8px; border-top:1px solid #eee; }
+  .cert-date { font-size:10px; color:#999; }
+  .cert-code { font-family:monospace; font-size:11px; color:${primaryColor}; background:${primaryColor}11; padding:4px 10px; border-radius:4px; letter-spacing:1px; font-weight:600; }
+  .cert-code-label { font-size:9px; color:#999; margin-bottom:2px; display:block; }
+</style></head>
+<body>
+<div class="cert">
+  <div class="cert-corner ct"></div><div class="cert-corner cr"></div>
+  <div class="cert-corner cb"></div><div class="cert-corner cd"></div>
+  <div class="cert-watermark"></div>
+  <div class="cert-inner">
+    <div class="cert-header">
+      ${template.logo_url ? `<img src="${template.logo_url}" class="cert-logo" />` : '<div></div>'}
+      <div class="cert-header-text">Tech Olympics Hub<br/>Plataforma de Eventos</div>
+    </div>
+    <div class="cert-divider"></div>
+    <div class="cert-title">Certificado</div>
+    <div class="cert-subtitle">ESTE CERTIFICADO É CONFERIDO A</div>
+    <div class="cert-recipient-wrap"><span class="cert-recipient">${profile?.nome || "Participante"}</span></div>
+    <div class="cert-body">${texto}</div>
+    <div class="cert-footer">
+      <div class="cert-sig"><div class="cert-sig-line">Coordenação Geral</div><div class="cert-sig-role">Organização do Evento</div></div>
+      <div class="cert-sig"><div class="cert-sig-line">Diretoria Tech Olympics</div><div class="cert-sig-role">Responsável Institucional</div></div>
+    </div>
+    <div class="cert-meta">
+      <div class="cert-date">Emitido em ${new Date().toLocaleDateString("pt-BR")} via Plataforma Tech Olympics Hub</div>
+      <div><span class="cert-code-label">Código de Validação</span><span class="cert-code">${formattedCode}</span></div>
+    </div>
+  </div>
+</div>
+<script>window.onload=()=>{setTimeout(()=>window.print(),600)}</script>
+</body></html>`;
     pw.document.write(html);
     pw.document.close();
   };
+
+  const checks = passwordChecks(newPassword);
 
   return (
     <Layout hideFooter>
@@ -252,14 +489,16 @@ const ParticipantDashboard = () => {
               <TabsTrigger value="dashboard" className="gap-1.5"><LayoutDashboard className="h-4 w-4" />Resumo</TabsTrigger>
               <TabsTrigger value="olympiads" className="gap-1.5"><Trophy className="h-4 w-4" />Olimpíadas e Modalidades</TabsTrigger>
               <TabsTrigger value="workshops" className="gap-1.5"><BookOpen className="h-4 w-4" />Oficinas</TabsTrigger>
+              <TabsTrigger value="lectures" className="gap-1.5"><Mic className="h-4 w-4" />Palestras</TabsTrigger>
               <TabsTrigger value="materials" className="gap-1.5"><FileText className="h-4 w-4" />Materiais</TabsTrigger>
               <TabsTrigger value="certificates" className="gap-1.5"><Award className="h-4 w-4" />Certificados</TabsTrigger>
+              <TabsTrigger value="ranking" className="gap-1.5"><Medal className="h-4 w-4" />Ranking</TabsTrigger>
               <TabsTrigger value="profile" className="gap-1.5"><User className="h-4 w-4" />Perfil</TabsTrigger>
             </TabsList>
 
             {/* Dashboard */}
             <TabsContent value="dashboard">
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-4">
                 <Card className="card-cyber border-0">
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-3">
@@ -282,6 +521,32 @@ const ParticipantDashboard = () => {
                       <div>
                         <p className="text-sm text-muted-foreground">Oficinas Inscritas</p>
                         <p className="font-display text-2xl font-semibold">{enrolledWorkshopIds.length}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="card-cyber border-0">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
+                        <Mic className="h-5 w-5 text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Palestras Inscritas</p>
+                        <p className="font-display text-2xl font-semibold">{enrolledLectureIds.length}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="card-cyber border-0">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
+                        <Award className="h-5 w-5 text-amber-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Certificados</p>
+                        <p className="font-display text-2xl font-semibold">{availableCertificates.length}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -343,12 +608,7 @@ const ParticipantDashboard = () => {
                              <span className="font-semibold text-white">Modalidades disponíveis:</span> {OlympiadModalities.length}
                           </div>
                         </div>
-                        
-                        <Button 
-                          size="sm" 
-                          className="w-full mt-4" 
-                          onClick={() => setEnrollOlympiadId(o.id)}
-                        >
+                        <Button size="sm" className="w-full mt-4" onClick={() => setEnrollOlympiadId(o.id)}>
                           Ver Modalidades / Inscrever-se
                         </Button>
                       </CardContent>
@@ -379,9 +639,7 @@ const ParticipantDashboard = () => {
                           {isEnrolledInWs && <Badge className="bg-primary/20 text-primary">Inscrito</Badge>}
                         </div>
                         <CardDescription className="flex flex-col gap-1">
-                          <span className="flex items-center gap-1">
-                            <GraduationCap className="h-3 w-3" /> {ws.professor || 'Indefinido'}
-                          </span>
+                          <span className="flex items-center gap-1"><GraduationCap className="h-3 w-3" /> {ws.professor || 'Indefinido'}</span>
                           <span className="text-xs text-primary/80">Olimpíada: {relatedOlympiad?.nome || '—'}</span>
                         </CardDescription>
                       </CardHeader>
@@ -392,17 +650,9 @@ const ParticipantDashboard = () => {
                         
                         <div className="pt-3">
                           {isEnrolledInWs ? (
-                            <Button size="sm" variant="outline" className="w-full cursor-default" disabled>
-                              Inscrição Confirmada
-                            </Button>
+                            <Button size="sm" variant="outline" className="w-full cursor-default" disabled>Inscrição Confirmada</Button>
                           ) : isEnrolledInOlymp ? (
-                            <Button 
-                              size="sm" 
-                              className="w-full"
-                              onClick={() => handleEnrollWorkshop(ws.id)}
-                            >
-                              Inscrever-se na Oficina
-                            </Button>
+                            <Button size="sm" className="w-full" onClick={() => handleEnrollWorkshop(ws.id)}>Inscrever-se na Oficina</Button>
                           ) : (
                             <p className="text-xs text-destructive text-center py-2 bg-destructive/10 rounded">
                               Para se inscrever, você deve primeiro se inscrever na Olimpíada "{relatedOlympiad?.nome}".
@@ -416,6 +666,63 @@ const ParticipantDashboard = () => {
                 {workshops.length === 0 && (
                   <div className="col-span-full py-8 text-center text-muted-foreground">
                     Nenhuma oficina disponível no momento.
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Lectures (Palestras) */}
+            <TabsContent value="lectures">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {lectures.map((lec) => {
+                  const isEnrolled = enrolledLectureIds.includes(lec.id);
+                  const speakers = lectureSpeakers.filter(s => s.lecture_id === lec.id);
+
+                  return (
+                    <Card key={lec.id} className="card-cyber border-0 flex flex-col">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="font-display text-base">{lec.nome}</CardTitle>
+                          {isEnrolled && <Badge className="bg-purple-500/20 text-purple-300">Inscrito</Badge>}
+                        </div>
+                        <CardDescription className="line-clamp-2">{lec.descricao || "Palestra na plataforma Tech Olympics."}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm text-muted-foreground mt-2 flex-grow flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-purple-400" />{lec.data_evento ? new Date(lec.data_evento + "T12:00").toLocaleDateString("pt-BR") : "Data a definir"}</div>
+                          <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-purple-400" />{lec.horario || "Horário a definir"}</div>
+                          <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-purple-400" />{lec.local || "Local a definir"}</div>
+                          <div className="flex items-center gap-2 text-xs"><GraduationCap className="h-3.5 w-3.5 text-purple-400" />Carga Horária: {lec.carga_horaria || 0}h</div>
+                          
+                          {speakers.length > 0 && (
+                            <div className="mt-3 space-y-1">
+                              <p className="text-xs font-semibold text-white">Palestrantes:</p>
+                              {speakers.map(s => (
+                                <div key={s.id} className="text-xs bg-muted/20 rounded p-2">
+                                  <p className="font-medium text-purple-300">{s.nome}</p>
+                                  {s.topico && <p className="text-muted-foreground">Tópico: {s.topico}</p>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="pt-3">
+                          {isEnrolled ? (
+                            <Button size="sm" variant="outline" className="w-full cursor-default" disabled>Inscrição Confirmada</Button>
+                          ) : (
+                            <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700" onClick={() => handleEnrollLecture(lec.id)}>
+                              Inscrever-se na Palestra
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {lectures.length === 0 && (
+                  <div className="col-span-full py-8 text-center text-muted-foreground">
+                    Nenhuma palestra disponível no momento.
                   </div>
                 )}
               </div>
@@ -443,12 +750,7 @@ const ParticipantDashboard = () => {
                               </div>
                             </div>
                             {mat.arquivo_url && (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
-                                onClick={() => window.open(mat.arquivo_url, '_blank')}
-                              >
+                              <Button variant="outline" size="sm" className="border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground" onClick={() => window.open(mat.arquivo_url, '_blank')}>
                                 <Download className="mr-1 h-4 w-4" /> Baixar
                               </Button>
                             )}
@@ -503,37 +805,111 @@ const ParticipantDashboard = () => {
               </div>
             </TabsContent>
 
+            {/* Ranking */}
+            <TabsContent value="ranking">
+              <ParticipantRankingView enrolledOlympiadIds={enrolledOlympiadIds} enrolledModalityIds={enrolledModalityIds} olympiads={olympiads} activities={activities} />
+            </TabsContent>
+
             {/* Profile */}
             <TabsContent value="profile">
-              <Card className="card-cyber border-0 max-w-xl">
-                <CardHeader>
-                  <CardTitle className="font-display text-xl">Meu Perfil</CardTitle>
-                  <CardDescription>Visualize seus dados pessoais</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Nome Completo</Label>
-                      <Input defaultValue={profile?.nome || ""} disabled />
+              <div className="grid gap-6 max-w-2xl">
+                <Card className="card-cyber border-0">
+                  <CardHeader>
+                    <CardTitle className="font-display text-xl">Meu Perfil</CardTitle>
+                    <CardDescription>Visualize e edite seus dados pessoais</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Nome Completo</Label>
+                        <Input value={profileForm.nome || ""} onChange={e => setProfileForm({ ...profileForm, nome: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>E-mail</Label>
+                        <Input value={profileForm.email || ""} disabled className="opacity-60" />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>E-mail</Label>
-                      <Input defaultValue={profile?.email || ""} disabled />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>CPF</Label>
+                        <Input value={profileForm.cpf || ""} onChange={e => setProfileForm({ ...profileForm, cpf: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Telefone</Label>
+                        <Input value={profileForm.telefone || ""} onChange={e => setProfileForm({ ...profileForm, telefone: e.target.value })} />
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>CPF</Label>
-                      <Input defaultValue={profile?.cpf || ""} disabled />
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="space-y-2">
+                        <Label>CEP</Label>
+                        <Input value={profileForm.cep || ""} onChange={e => setProfileForm({ ...profileForm, cep: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Estado</Label>
+                        <Select value={profileForm.estado || ""} onValueChange={v => setProfileForm({ ...profileForm, estado: v })}>
+                          <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                          <SelectContent>{ESTADOS_BR.map(uf => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Cidade</Label>
+                        <Input value={profileForm.cidade || ""} onChange={e => setProfileForm({ ...profileForm, cidade: e.target.value })} />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Telefone</Label>
-                      <Input defaultValue={profile?.telefone || ""} disabled />
+                    <div className="grid gap-3 sm:grid-cols-[1fr_100px]">
+                      <div className="space-y-2">
+                        <Label>Rua</Label>
+                        <Input value={profileForm.rua || ""} onChange={e => setProfileForm({ ...profileForm, rua: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Nº</Label>
+                        <Input value={profileForm.numero || ""} onChange={e => setProfileForm({ ...profileForm, numero: e.target.value })} />
+                      </div>
                     </div>
-                  </div>
-                  <Button className="font-display tracking-wide" onClick={updateProfile}>Salvar Alterações</Button>
-                </CardContent>
-              </Card>
+                    <Button className="font-display tracking-wide w-full" onClick={updateProfile} disabled={savingProfile}>
+                      {savingProfile ? "Salvando..." : "Salvar Alterações"}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="card-cyber border-0">
+                  <CardHeader>
+                    <CardTitle className="font-display text-lg">Alterar Senha</CardTitle>
+                    <CardDescription>Defina uma nova senha para sua conta</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1">
+                        <Label>Nova Senha</Label>
+                        <div className="relative">
+                          <Input type={showPass ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Nova senha" />
+                          <button type="button" className="absolute right-2 top-2.5 text-muted-foreground hover:text-primary transition-colors" onClick={() => setShowPass(!showPass)}>
+                            {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label>Confirmar Nova Senha</Label>
+                        <Input type={showPass ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirme" />
+                      </div>
+                    </div>
+                    {newPassword && (
+                      <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-1.5">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Requisitos da senha:</p>
+                        {checks.map(c => (
+                          <div key={c.label} className="flex items-center gap-2 text-xs">
+                            {c.ok ? <Check className="h-3.5 w-3.5 text-primary" /> : <XIcon className="h-3.5 w-3.5 text-destructive" />}
+                            <span className={c.ok ? "text-primary" : "text-muted-foreground"}>{c.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <Button onClick={changePassword} disabled={changingPass || !newPassword} variant="outline" className="w-full font-display">
+                      {changingPass ? "Alterando..." : "Alterar Senha"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
