@@ -114,160 +114,6 @@ export type Database = {
           },
         ]
       }
-      lectures: {
-        Row: {
-          id: string
-          nome: string
-          descricao: string | null
-          local: string | null
-          carga_horaria: number | null
-          data_evento: string | null
-          horario: string | null
-          vagas: number | null
-          certificates_released: boolean | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          nome: string
-          descricao?: string | null
-          local?: string | null
-          carga_horaria?: number | null
-          data_evento?: string | null
-          horario?: string | null
-          vagas?: number | null
-          certificates_released?: boolean | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          nome?: string
-          descricao?: string | null
-          local?: string | null
-          carga_horaria?: number | null
-          data_evento?: string | null
-          horario?: string | null
-          vagas?: number | null
-          certificates_released?: boolean | null
-          created_at?: string
-        }
-        Relationships: []
-      }
-      lecture_speakers: {
-        Row: {
-          id: string
-          lecture_id: string
-          nome: string
-          email: string | null
-          bio: string | null
-          topico: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          lecture_id: string
-          nome: string
-          email?: string | null
-          bio?: string | null
-          topico?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          lecture_id?: string
-          nome?: string
-          email?: string | null
-          bio?: string | null
-          topico?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lecture_speakers_lecture_id_fkey"
-            columns: ["lecture_id"]
-            isOneToOne: false
-            referencedRelation: "lectures"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lecture_enrollments: {
-        Row: {
-          id: string
-          user_id: string
-          lecture_id: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          lecture_id: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          lecture_id?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lecture_enrollments_lecture_id_fkey"
-            columns: ["lecture_id"]
-            isOneToOne: false
-            referencedRelation: "lectures"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      olympiad_scores: {
-        Row: {
-          id: string
-          olympiad_id: string
-          activity_id: string
-          user_id: string
-          pontuacao: number | null
-          colocacao: number | null
-          observacoes: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          olympiad_id: string
-          activity_id: string
-          user_id: string
-          pontuacao?: number | null
-          colocacao?: number | null
-          observacoes?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          olympiad_id?: string
-          activity_id?: string
-          user_id?: string
-          pontuacao?: number | null
-          colocacao?: number | null
-          observacoes?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "olympiad_scores_olympiad_id_fkey"
-            columns: ["olympiad_id"]
-            isOneToOne: false
-            referencedRelation: "olympiads"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "olympiad_scores_activity_id_fkey"
-            columns: ["activity_id"]
-            isOneToOne: false
-            referencedRelation: "olympiad_activities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       certificate_templates: {
         Row: {
           cor_primaria: string | null
@@ -292,6 +138,112 @@ export type Database = {
           logo_url?: string | null
           texto_padrao?: string | null
           tipo?: string
+        }
+        Relationships: []
+      }
+      lecture_enrollments: {
+        Row: {
+          created_at: string
+          id: string
+          lecture_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lecture_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lecture_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecture_enrollments_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lecture_speakers: {
+        Row: {
+          bio: string | null
+          created_at: string
+          email: string | null
+          id: string
+          lecture_id: string
+          nome: string
+          topico: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          lecture_id: string
+          nome: string
+          topico?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          lecture_id?: string
+          nome?: string
+          topico?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lecture_speakers_lecture_id_fkey"
+            columns: ["lecture_id"]
+            isOneToOne: false
+            referencedRelation: "lectures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lectures: {
+        Row: {
+          carga_horaria: number | null
+          certificates_released: boolean | null
+          created_at: string
+          data_evento: string | null
+          descricao: string | null
+          horario: string | null
+          id: string
+          local: string | null
+          nome: string
+          vagas: number | null
+        }
+        Insert: {
+          carga_horaria?: number | null
+          certificates_released?: boolean | null
+          created_at?: string
+          data_evento?: string | null
+          descricao?: string | null
+          horario?: string | null
+          id?: string
+          local?: string | null
+          nome: string
+          vagas?: number | null
+        }
+        Update: {
+          carga_horaria?: number | null
+          certificates_released?: boolean | null
+          created_at?: string
+          data_evento?: string | null
+          descricao?: string | null
+          horario?: string | null
+          id?: string
+          local?: string | null
+          nome?: string
+          vagas?: number | null
         }
         Relationships: []
       }
@@ -384,6 +336,54 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      olympiad_scores: {
+        Row: {
+          activity_id: string
+          colocacao: number | null
+          created_at: string
+          id: string
+          observacoes: string | null
+          olympiad_id: string
+          pontuacao: number | null
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          colocacao?: number | null
+          created_at?: string
+          id?: string
+          observacoes?: string | null
+          olympiad_id: string
+          pontuacao?: number | null
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          colocacao?: number | null
+          created_at?: string
+          id?: string
+          observacoes?: string | null
+          olympiad_id?: string
+          pontuacao?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "olympiad_scores_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "olympiad_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "olympiad_scores_olympiad_id_fkey"
+            columns: ["olympiad_id"]
+            isOneToOne: false
+            referencedRelation: "olympiads"
             referencedColumns: ["id"]
           },
         ]
@@ -810,6 +810,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_validation_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
