@@ -259,6 +259,7 @@ export type Database = {
           nome: string
           olympiad_id: string
           responsavel: string | null
+          total_horas: number | null
         }
         Insert: {
           created_at?: string
@@ -271,6 +272,7 @@ export type Database = {
           nome: string
           olympiad_id: string
           responsavel?: string | null
+          total_horas?: number | null
         }
         Update: {
           created_at?: string
@@ -283,6 +285,7 @@ export type Database = {
           nome?: string
           olympiad_id?: string
           responsavel?: string | null
+          total_horas?: number | null
         }
         Relationships: [
           {
