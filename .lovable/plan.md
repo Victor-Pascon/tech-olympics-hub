@@ -1,32 +1,27 @@
 
 
-## Plano: Corrigir Login e Resetar Senha do Usuário
+## Plano: Corrigir subcategorias de olimpiadas e reset de senha
 
-### Problema
-O usuário não consegue fazer login com `joaovpascon@gmail.com` / `Vic@310721`. Os logs de autenticação confirmam `invalid_credentials`, o que significa que a senha armazenada no Supabase Auth é diferente.
+### Problema 1: Subcategorias (atividades) nao salvam
+O erro nos logs de rede e claro: `Could not find the 'total_horas' column of 'olympiad_activities'`. A tabela `olympiad_activities` no banco nao possui a coluna `total_horas`, mas o codigo envia esse campo nos inserts.
 
-### Solução
+**Correcao:** Criar migration para adicionar coluna `total_horas` na tabela `olympiad_activities`:
+```sql
+ALTER TABLE public.olympiad_activities ADD COLUMN total_horas integer DEFAULT 0;
+```
 
-**1. Criar Edge Function `reset-user-password`**
-- Usa `SUPABASE_SERVICE_ROLE_KEY` para chamar `auth.admin.updateUser()` 
-- Recebe `email` e `new_password` no body
-- Protegida: só admins podem chamar (ou aceita um secret token fixo para uso único)
-- Para este caso específico, vou torná-la callable sem auth (uso único para reset) com verificação por secret
+### Problema 2: Reset de senha redireciona para localhost
+O codigo usa `window.location.origin` corretamente, mas o Supabase Auth tem uma configuracao de **Site URL** e **Redirect URLs** que controla os URLs permitidos nos emails. Se o Site URL esta como `http://localhost:3000`, o email enviado tera esse URL.
 
-**2. Chamar a função para resetar a senha**
-- Resetar a senha do usuário `joaovpascon@gmail.com` para `Vic@310721`
+**Correcao:**
+- Orientar o usuario a atualizar o **Site URL** no painel do Supabase (Authentication > URL Configuration) para `https://tech-olympics-hub.lovable.app`
+- Adicionar `https://tech-olympics-hub.lovable.app/reset-password` e `https://id-preview--05b2063f-6bec-424d-bff7-a61e9cf14457.lovable.app/reset-password` na lista de **Redirect URLs**
 
-**3. Adicionar funcionalidade de "Esqueci minha senha" nas páginas de login**
-- Botão "Esqueceu a senha?" nas páginas Login e AdminLogin
-- Chama `supabase.auth.resetPasswordForEmail()` com redirect para `/reset-password`
-- Criar página `/reset-password` para definir nova senha
+### Arquivos alterados
+1. **Nova migration SQL** - adicionar `total_horas` em `olympiad_activities`
+2. **Nenhuma alteracao de codigo** - o codigo ja esta correto, o problema era apenas a coluna faltando no banco
 
-### Arquivos a criar/modificar
-
-1. **`supabase/functions/reset-user-password/index.ts`** — Edge function para reset de senha via admin API
-2. **`supabase/config.toml`** — Registrar nova função com `verify_jwt = false`
-3. **`src/pages/Login.tsx`** — Adicionar link "Esqueceu a senha?"
-4. **`src/pages/AdminLogin.tsx`** — Adicionar link "Esqueceu a senha?"
-5. **`src/pages/ResetPassword.tsx`** — Nova página para redefinir senha
-6. **`src/App.tsx`** — Adicionar rota `/reset-password`
+### Configuracao manual necessaria (Supabase Dashboard)
+- Authentication > URL Configuration > Site URL: `https://tech-olympics-hub.lovable.app`
+- Adicionar URLs de redirect permitidos
 
