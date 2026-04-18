@@ -17,6 +17,22 @@ import CertificatesTab from "@/components/admin/CertificatesTab";
 import ParticipantsTab from "@/components/admin/ParticipantsTab";
 import MyAccountTab from "@/components/admin/MyAccountTab";
 import RankingTab from "@/components/admin/RankingTab";
+import MobileTabsMenu from "@/components/MobileTabsMenu";
+
+const TAB_ITEMS = [
+  { value: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { value: "olympiads", label: "Olimpíadas", icon: Trophy },
+  { value: "workshops", label: "Oficinas", icon: BookOpen },
+  { value: "lectures", label: "Palestras", icon: Mic },
+  { value: "posts", label: "Postagens", icon: FileText },
+  { value: "materials", label: "Materiais de Apoio", icon: FileText },
+  { value: "certificates", label: "Certificados", icon: Award },
+  { value: "participants", label: "Participantes", icon: UserCheck },
+  { value: "ranking", label: "Ranking", icon: Medal },
+  { value: "reports", label: "Relatórios", icon: BarChart3 },
+  { value: "users", label: "Usuários", icon: Users },
+  { value: "myaccount", label: "Minha Conta", icon: UserCircle },
+];
 
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
