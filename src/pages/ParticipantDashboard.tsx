@@ -17,6 +17,18 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import MobileTabsMenu from "@/components/MobileTabsMenu";
+
+const PARTICIPANT_TAB_ITEMS = [
+  { value: "dashboard", label: "Resumo", icon: LayoutDashboard },
+  { value: "olympiads", label: "Olimpíadas e Modalidades", icon: Trophy },
+  { value: "workshops", label: "Oficinas", icon: BookOpen },
+  { value: "lectures", label: "Palestras", icon: Mic },
+  { value: "materials", label: "Materiais", icon: FileText },
+  { value: "certificates", label: "Certificados", icon: Award },
+  { value: "ranking", label: "Ranking", icon: Medal },
+  { value: "profile", label: "Perfil", icon: User },
+];
 
 const ESTADOS_BR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -485,15 +497,17 @@ const ParticipantDashboard = () => {
           </div>
 
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="mb-6 flex flex-wrap gap-1 bg-muted/10">
-              <TabsTrigger value="dashboard" className="gap-1.5"><LayoutDashboard className="h-4 w-4" />Resumo</TabsTrigger>
-              <TabsTrigger value="olympiads" className="gap-1.5"><Trophy className="h-4 w-4" />Olimpíadas e Modalidades</TabsTrigger>
-              <TabsTrigger value="workshops" className="gap-1.5"><BookOpen className="h-4 w-4" />Oficinas</TabsTrigger>
-              <TabsTrigger value="lectures" className="gap-1.5"><Mic className="h-4 w-4" />Palestras</TabsTrigger>
-              <TabsTrigger value="materials" className="gap-1.5"><FileText className="h-4 w-4" />Materiais</TabsTrigger>
-              <TabsTrigger value="certificates" className="gap-1.5"><Award className="h-4 w-4" />Certificados</TabsTrigger>
-              <TabsTrigger value="ranking" className="gap-1.5"><Medal className="h-4 w-4" />Ranking</TabsTrigger>
-              <TabsTrigger value="profile" className="gap-1.5"><User className="h-4 w-4" />Perfil</TabsTrigger>
+            <MobileTabsMenu items={PARTICIPANT_TAB_ITEMS} value={tab} onChange={setTab} title="Menu" />
+            <TabsList className="mb-6 hidden flex-wrap gap-1 bg-muted/10 md:flex">
+              {PARTICIPANT_TAB_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <TabsTrigger key={item.value} value={item.value} className="gap-1.5">
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
 
             {/* Dashboard */}
