@@ -17,6 +17,18 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import MobileTabsMenu from "@/components/MobileTabsMenu";
+
+const PARTICIPANT_TAB_ITEMS = [
+  { value: "dashboard", label: "Resumo", icon: LayoutDashboard },
+  { value: "olympiads", label: "Olimpíadas e Modalidades", icon: Trophy },
+  { value: "workshops", label: "Oficinas", icon: BookOpen },
+  { value: "lectures", label: "Palestras", icon: Mic },
+  { value: "materials", label: "Materiais", icon: FileText },
+  { value: "certificates", label: "Certificados", icon: Award },
+  { value: "ranking", label: "Ranking", icon: Medal },
+  { value: "profile", label: "Perfil", icon: User },
+];
 
 const ESTADOS_BR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
