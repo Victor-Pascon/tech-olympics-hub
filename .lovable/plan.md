@@ -1,27 +1,28 @@
 
 
-## Plano: Corrigir subcategorias de olimpiadas e reset de senha
+## Plano: Menu hamburguer para abas no mobile (Admin e Participante)
 
-### Problema 1: Subcategorias (atividades) nao salvam
-O erro nos logs de rede e claro: `Could not find the 'total_horas' column of 'olympiad_activities'`. A tabela `olympiad_activities` no banco nao possui a coluna `total_horas`, mas o codigo envia esse campo nos inserts.
+### Problema
+Nas telas mobile, as abas (`TabsList`) do painel Admin (12 abas) e do Participante quebram em múltiplas linhas e ficam confusas, sobrepondo conteúdo (ex: "Ranking/Relatórios" aparecendo atrás do card "Participantes").
 
-**Correcao:** Criar migration para adicionar coluna `total_horas` na tabela `olympiad_activities`:
-```sql
-ALTER TABLE public.olympiad_activities ADD COLUMN total_horas integer DEFAULT 0;
-```
+### Solução
+Manter as `Tabs` atuais (lógica intacta), mas no mobile (`< md`) esconder a `TabsList` horizontal e exibir um **botão hamburguer** que abre um `Sheet` lateral contendo a lista vertical das abas. Ao clicar em uma aba, o sheet fecha e o `tab` ativo é atualizado.
 
-### Problema 2: Reset de senha redireciona para localhost
-O codigo usa `window.location.origin` corretamente, mas o Supabase Auth tem uma configuracao de **Site URL** e **Redirect URLs** que controla os URLs permitidos nos emails. Se o Site URL esta como `http://localhost:3000`, o email enviado tera esse URL.
+### Arquivos a modificar
 
-**Correcao:**
-- Orientar o usuario a atualizar o **Site URL** no painel do Supabase (Authentication > URL Configuration) para `https://tech-olympics-hub.lovable.app`
-- Adicionar `https://tech-olympics-hub.lovable.app/reset-password` e `https://id-preview--05b2063f-6bec-424d-bff7-a61e9cf14457.lovable.app/reset-password` na lista de **Redirect URLs**
+**1. `src/pages/AdminDashboard.tsx`**
+- Importar `Sheet`, `SheetContent`, `SheetTrigger`, `SheetHeader`, `SheetTitle` e `Menu` (lucide).
+- Extrair a lista de abas para um array `[{ value, label, icon }]`.
+- Adicionar header mobile com botão hamburguer + label da aba ativa (visível apenas `md:hidden`).
+- `TabsList` existente recebe `hidden md:flex` para sumir no mobile.
+- `Sheet` lateral (lado esquerdo) com botões verticais para cada aba; ao clicar, seta `tab` e fecha o sheet.
 
-### Arquivos alterados
-1. **Nova migration SQL** - adicionar `total_horas` em `olympiad_activities`
-2. **Nenhuma alteracao de codigo** - o codigo ja esta correto, o problema era apenas a coluna faltando no banco
+**2. `src/pages/ParticipantDashboard.tsx`** (mesma abordagem)
+- Inspecionar arquivo para confirmar estrutura de `Tabs` antes de aplicar.
+- Aplicar o mesmo padrão: hamburguer + Sheet vertical no mobile, `TabsList` escondida no mobile.
 
-### Configuracao manual necessaria (Supabase Dashboard)
-- Authentication > URL Configuration > Site URL: `https://tech-olympics-hub.lovable.app`
-- Adicionar URLs de redirect permitidos
+### Observações
+- Nenhuma alteração em desktop (continua com `TabsList` horizontal).
+- Sem mudanças de banco/edge functions.
+- Mantém todos os `TabsContent` inalterados.
 
