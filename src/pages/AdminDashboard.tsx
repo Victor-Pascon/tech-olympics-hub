@@ -71,19 +71,17 @@ const AdminDashboard = () => {
           </div>
 
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="mb-6 flex flex-wrap gap-1 bg-muted/10">
-              <TabsTrigger value="dashboard" className="gap-1.5"><LayoutDashboard className="h-4 w-4" />Dashboard</TabsTrigger>
-              <TabsTrigger value="olympiads" className="gap-1.5"><Trophy className="h-4 w-4" />Olimpíadas</TabsTrigger>
-              <TabsTrigger value="workshops" className="gap-1.5"><BookOpen className="h-4 w-4" />Oficinas</TabsTrigger>
-              <TabsTrigger value="lectures" className="gap-1.5"><Mic className="h-4 w-4" />Palestras</TabsTrigger>
-              <TabsTrigger value="posts" className="gap-1.5"><FileText className="h-4 w-4" />Postagens</TabsTrigger>
-              <TabsTrigger value="materials" className="gap-1.5"><FileText className="h-4 w-4" />Materiais de Apoio</TabsTrigger>
-              <TabsTrigger value="certificates" className="gap-1.5"><Award className="h-4 w-4" />Certificados</TabsTrigger>
-              <TabsTrigger value="participants" className="gap-1.5"><UserCheck className="h-4 w-4" />Participantes</TabsTrigger>
-              <TabsTrigger value="ranking" className="gap-1.5"><Medal className="h-4 w-4" />Ranking</TabsTrigger>
-              <TabsTrigger value="reports" className="gap-1.5"><BarChart3 className="h-4 w-4" />Relatórios</TabsTrigger>
-              <TabsTrigger value="users" className="gap-1.5"><Users className="h-4 w-4" />Usuários</TabsTrigger>
-              <TabsTrigger value="myaccount" className="gap-1.5"><UserCircle className="h-4 w-4" />Minha Conta</TabsTrigger>
+            <MobileTabsMenu items={TAB_ITEMS} value={tab} onChange={setTab} title="Painel Admin" />
+            <TabsList className="mb-6 hidden flex-wrap gap-1 bg-muted/10 md:flex">
+              {TAB_ITEMS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <TabsTrigger key={item.value} value={item.value} className="gap-1.5">
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
 
             <TabsContent value="dashboard"><DashboardTab /></TabsContent>
