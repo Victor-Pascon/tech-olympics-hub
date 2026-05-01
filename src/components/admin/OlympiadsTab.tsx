@@ -212,9 +212,13 @@ const OlympiadsTab = () => {
       setParticipants((profiles || []).map(p => {
         const userEnrolls = allEnrollments.filter(e => e.user_id === p.id);
         const modalidades = userEnrolls
-          .map(e => (e.olympiad_activities as any)?.[0]?.nome)
+          .map(e => {
+            const oa = e.olympiad_activities as any;
+            // Supabase pode retornar objeto (FK single) ou array
+            return Array.isArray(oa) ? oa[0]?.nome : oa?.nome;
+          })
           .filter(Boolean)
-          .join(", ") || "Inscrição Geral";
+          .join(", ") || "—";
         const att = attendance?.find(a => a.user_id === p.id && !a.activity_id)
                   || attendance?.find(a => a.user_id === p.id);
         return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id, modalidades, activity_id: null };
