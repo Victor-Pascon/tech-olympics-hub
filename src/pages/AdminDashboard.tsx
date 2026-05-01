@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { LayoutDashboard, Trophy, BookOpen, FileText, BarChart3, Users, Mic, UserCheck, UserCircle, Medal, Award } from "lucide-react";
 import DashboardTab from "@/components/admin/DashboardTab";
 import OlympiadsTab from "@/components/admin/OlympiadsTab";
 import WorkshopsTab from "@/components/admin/WorkshopsTab";
@@ -17,23 +16,6 @@ import CertificatesTab from "@/components/admin/CertificatesTab";
 import ParticipantsTab from "@/components/admin/ParticipantsTab";
 import MyAccountTab from "@/components/admin/MyAccountTab";
 import RankingTab from "@/components/admin/RankingTab";
-import MobileTabsMenu from "@/components/MobileTabsMenu";
-
-const TAB_ITEMS = [
-  { value: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { value: "olympiads", label: "Olimpíadas", icon: Trophy },
-  { value: "workshops", label: "Oficinas", icon: BookOpen },
-  { value: "lectures", label: "Palestras", icon: Mic },
-  { value: "posts", label: "Postagens", icon: FileText },
-  { value: "materials", label: "Materiais de Apoio", icon: FileText },
-  { value: "certificates", label: "Certificados", icon: Award },
-  { value: "participants", label: "Participantes", icon: UserCheck },
-  { value: "ranking", label: "Ranking", icon: Medal },
-  { value: "reports", label: "Relatórios", icon: BarChart3 },
-  { value: "users", label: "Usuários", icon: Users },
-  { value: "myaccount", label: "Minha Conta", icon: UserCircle },
-];
-
 const AdminDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -74,8 +56,6 @@ const AdminDashboard = () => {
       <div className="hero-bg min-h-[calc(100vh-4rem)]">
         <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-[1600px] mx-auto">
           <Tabs value={tab} onValueChange={setTab}>
-            <MobileTabsMenu items={TAB_ITEMS} value={tab} onChange={setTab} title="Painel Admin" />
-
             <TabsContent value="dashboard" className="mt-0"><DashboardTab /></TabsContent>
             <TabsContent value="olympiads" className="mt-0"><OlympiadsTab /></TabsContent>
             <TabsContent value="workshops" className="mt-0"><WorkshopsTab /></TabsContent>
