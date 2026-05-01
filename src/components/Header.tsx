@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Menu, X, Shield, Settings, UserCircle, LogOut, User,
   LayoutDashboard, Trophy, BookOpen, FileText, BarChart3,
-  Users, Mic, UserCheck, Medal, Award
+  Users, Mic, UserCheck, Medal, Award, History
 } from "lucide-react";
 
 const ADMIN_MODULES = [
@@ -24,32 +24,58 @@ const ADMIN_MODULES = [
   { label: "Minha Conta", icon: UserCircle, tab: "myaccount" },
 ];
 
+const PARTICIPANT_MODULES = [
+  { label: "Resumo", icon: LayoutDashboard, tab: "dashboard" },
+  { label: "Olimpíadas", icon: Trophy, tab: "olympiads" },
+  { label: "Oficinas", icon: BookOpen, tab: "workshops" },
+  { label: "Palestras", icon: Mic, tab: "lectures" },
+  { label: "Materiais", icon: FileText, tab: "materials" },
+  { label: "Certificados", icon: Award, tab: "certificates" },
+  { label: "Ranking", icon: Medal, tab: "ranking" },
+  { label: "Histórico", icon: History, tab: "history" },
+  { label: "Perfil", icon: UserCircle, tab: "profile" },
+];
+
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminSheetOpen, setAdminSheetOpen] = useState(false);
+  const [participantSheetOpen, setParticipantSheetOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
   const isAdminPage = location.pathname.startsWith("/admin");
+  const isParticipantPage = location.pathname === "/participante";
   const isAdmin = isAdminPage && !!user;
+  const isParticipant = isParticipantPage && !!user;
 
   const handleSignOut = async () => {
     await signOut();
     setAdminSheetOpen(false);
+    setParticipantSheetOpen(false);
     navigate("/");
   };
 
   const handleAdminNav = (tab: string) => {
     setAdminSheetOpen(false);
     if (location.pathname === "/admin") {
-      // dispatch a custom event so AdminDashboard can listen and change tab
       window.dispatchEvent(new CustomEvent("admin-tab-change", { detail: tab }));
     } else {
       navigate("/admin");
-      // on next tick, dispatch
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent("admin-tab-change", { detail: tab }));
+      }, 100);
+    }
+  };
+
+  const handleParticipantNav = (tab: string) => {
+    setParticipantSheetOpen(false);
+    if (location.pathname === "/participante") {
+      window.dispatchEvent(new CustomEvent("participant-tab-change", { detail: tab }));
+    } else {
+      navigate("/participante");
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("participant-tab-change", { detail: tab }));
       }, 100);
     }
   };
@@ -150,6 +176,89 @@ const Header = () => {
           <div className="flex items-center gap-3">
             <span className="font-display text-sm font-semibold tracking-wider text-primary">
               Administrativo
+            </span>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // ---- PARTICIPANT HEADER ----
+  if (isParticipant) {
+    return (
+      <header className="sticky top-0 z-50 glass">
+        <div className="flex h-16 items-center justify-between px-4 lg:px-8">
+          {/* Left: Hamburger + Logo */}
+          <div className="flex items-center gap-4">
+            <Sheet open={participantSheetOpen} onOpenChange={setParticipantSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80 p-0 flex flex-col">
+                {/* User profile section */}
+                <div className="border-b border-border p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {user?.user_metadata?.nome || user?.email || "Participante"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{user?.email || ""}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4 w-full justify-start gap-2 border-destructive/30 text-destructive hover:bg-destructive/10"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sair
+                  </Button>
+                </div>
+
+                {/* Participant modules */}
+                <div className="flex-1 overflow-y-auto py-2">
+                  <p className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Menu do Participante
+                  </p>
+                  {PARTICIPANT_MODULES.map((m) => {
+                    const Icon = m.icon;
+                    return (
+                      <button
+                        key={m.tab}
+                        onClick={() => handleParticipantNav(m.tab)}
+                        className="flex w-full items-center gap-3 rounded-md px-5 py-2.5 text-left text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <Link to="/participante" className="flex items-center gap-2 group">
+              <img
+                src="/logo-tech-defense-sem_fundo.jpeg"
+                alt="Olimpíada Tech Defense"
+                className="h-8 w-8 rounded-md object-cover ring-1 ring-primary/20"
+              />
+              <span className="font-display text-base font-bold tracking-wider text-foreground">
+                Tech <span className="text-primary">Defense</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Right: Participant name */}
+          <div className="flex items-center gap-3">
+            <span className="font-display text-sm font-semibold tracking-wider text-primary truncate max-w-[180px]">
+              {user?.user_metadata?.nome || user?.email?.split("@")[0] || "Participante"}
             </span>
           </div>
         </div>

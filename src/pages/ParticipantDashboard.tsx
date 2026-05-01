@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,19 +16,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import MobileTabsMenu from "@/components/MobileTabsMenu";
-
-const PARTICIPANT_TAB_ITEMS = [
-  { value: "dashboard", label: "Resumo", icon: LayoutDashboard },
-  { value: "olympiads", label: "Olimpíadas e Modalidades", icon: Trophy },
-  { value: "workshops", label: "Oficinas", icon: BookOpen },
-  { value: "lectures", label: "Palestras", icon: Mic },
-  { value: "materials", label: "Materiais", icon: FileText },
-  { value: "certificates", label: "Certificados", icon: Award },
-  { value: "ranking", label: "Ranking", icon: Medal },
-  { value: "history", label: "Histórico", icon: History },
-  { value: "profile", label: "Perfil", icon: User },
-];
 
 const ESTADOS_BR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -168,6 +154,16 @@ const ParticipantDashboard = () => {
   const { toast } = useToast();
   const [tab, setTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
+
+  // Listen for tab changes from header hamburger menu
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const t = (e as CustomEvent).detail;
+      if (t) setTab(t);
+    };
+    window.addEventListener("participant-tab-change", handler);
+    return () => window.removeEventListener("participant-tab-change", handler);
+  }, []);
 
   const [profile, setProfile] = useState<any>(null);
   const [profileForm, setProfileForm] = useState<any>({});
@@ -507,34 +503,8 @@ const ParticipantDashboard = () => {
   return (
     <Layout hideFooter>
       <div className="hero-bg min-h-[calc(100vh-4rem)]">
-        <div className="container py-8">
-          <div className="mb-6">
-            <h1 className="font-display text-2xl font-bold text-primary-foreground">
-              Olá, <span className="text-primary">{profile?.nome || "Participante"}</span>
-            </h1>
-            <p className="text-sm text-muted-foreground">Gerencie sua participação nos eventos e modalidades</p>
-          </div>
-
+        <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-[1600px] mx-auto">
           <Tabs value={tab} onValueChange={setTab}>
-            <MobileTabsMenu items={PARTICIPANT_TAB_ITEMS} value={tab} onChange={setTab} title="Menu" />
-            <TabsList className="mb-6 hidden flex-wrap gap-1 bg-muted/10 md:flex">
-              {PARTICIPANT_TAB_ITEMS.map((item) => {
-                const Icon = item.icon;
-                const isCertificateTab = item.value === "certificates";
-                const certCount = availableCertificates.length;
-                return (
-                  <TabsTrigger key={item.value} value={item.value} className="gap-1.5 relative">
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                    {isCertificateTab && certCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground px-1">
-                        {certCount}
-                      </span>
-                    )}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
 
             {/* Dashboard */}
             <TabsContent value="dashboard">
