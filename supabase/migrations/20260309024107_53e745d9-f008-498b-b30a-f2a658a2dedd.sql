@@ -66,3 +66,34 @@ CREATE TABLE IF NOT EXISTS public.workshop_files (
 ALTER TABLE public.workshop_files ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admin manage workshop_files" ON public.workshop_files FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "Public read workshop_files" ON public.workshop_files FOR SELECT USING (true);
+
+-- DOWN
+DROP POLICY IF EXISTS "Public read workshop_files" ON public.workshop_files;
+DROP POLICY IF EXISTS "Admin manage workshop_files" ON public.workshop_files;
+DROP TABLE IF EXISTS public.workshop_files;
+DROP POLICY IF EXISTS "Public read post_files" ON public.post_files;
+DROP POLICY IF EXISTS "Admin manage post_files" ON public.post_files;
+DROP TABLE IF EXISTS public.post_files;
+DROP POLICY IF EXISTS "Admins can delete uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can upload" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can view uploads" ON storage.objects;
+DELETE FROM storage.buckets WHERE id = 'uploads';
+ALTER TABLE public.posts DROP COLUMN IF EXISTS localizacao_maps;
+ALTER TABLE public.workshops DROP COLUMN IF EXISTS dias_aulas;
+ALTER TABLE public.workshops DROP COLUMN IF EXISTS data_fim;
+ALTER TABLE public.workshops DROP COLUMN IF EXISTS data_inicio;
+ALTER TABLE public.olympiad_activities DROP COLUMN IF EXISTS limite_vagas;
+ALTER TABLE public.olympiad_activities DROP COLUMN IF EXISTS local_sala;
+ALTER TABLE public.olympiad_activities DROP COLUMN IF EXISTS data_atividade;
+ALTER TABLE public.olympiad_activities DROP COLUMN IF EXISTS horario;
+ALTER TABLE public.olympiad_activities DROP COLUMN IF EXISTS responsavel;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS dias_semana;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS horario;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS ponto_referencia;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS complemento;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS numero_endereco;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS estado;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS cidade;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS bairro;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS rua;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS cep;

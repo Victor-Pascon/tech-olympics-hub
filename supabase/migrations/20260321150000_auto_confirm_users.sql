@@ -16,3 +16,8 @@ CREATE TRIGGER on_auth_user_created_auto_confirm
   BEFORE INSERT ON auth.users
   FOR EACH ROW
   EXECUTE FUNCTION public.auto_confirm_user();
+
+-- DOWN
+DROP TRIGGER IF EXISTS on_auth_user_created_auto_confirm ON auth.users;
+DROP FUNCTION IF EXISTS public.auto_confirm_user();
+-- Note: does not revert email_confirmed_at for existing users (data-preserving)

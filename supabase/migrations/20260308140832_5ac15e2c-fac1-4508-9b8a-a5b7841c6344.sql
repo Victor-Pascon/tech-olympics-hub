@@ -155,3 +155,35 @@ $$;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- DOWN
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user();
+DROP POLICY IF EXISTS "Admin manage attendance" ON public.attendance;
+DROP POLICY IF EXISTS "Users view own attendance" ON public.attendance;
+DROP TABLE IF EXISTS public.attendance;
+DROP POLICY IF EXISTS "Admin manage materials" ON public.support_materials;
+DROP POLICY IF EXISTS "Authenticated read materials" ON public.support_materials;
+DROP TABLE IF EXISTS public.support_materials;
+DROP POLICY IF EXISTS "Admin manage posts" ON public.posts;
+DROP POLICY IF EXISTS "Public read published posts" ON public.posts;
+DROP TABLE IF EXISTS public.posts;
+DROP POLICY IF EXISTS "Admin view all enrollments" ON public.workshop_enrollments;
+DROP POLICY IF EXISTS "Users can unenroll" ON public.workshop_enrollments;
+DROP POLICY IF EXISTS "Users can enroll" ON public.workshop_enrollments;
+DROP POLICY IF EXISTS "Users can view own enrollments" ON public.workshop_enrollments;
+DROP TABLE IF EXISTS public.workshop_enrollments;
+DROP POLICY IF EXISTS "Admin manage workshops" ON public.workshops;
+DROP POLICY IF EXISTS "Public read workshops" ON public.workshops;
+DROP TABLE IF EXISTS public.workshops;
+DROP POLICY IF EXISTS "Admin manage olympiads" ON public.olympiads;
+DROP POLICY IF EXISTS "Public read olympiads" ON public.olympiads;
+DROP TABLE IF EXISTS public.olympiads;
+DROP FUNCTION IF EXISTS public.has_role;
+DROP POLICY IF EXISTS "Users can view own roles" ON public.user_roles;
+DROP TABLE IF EXISTS public.user_roles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP TABLE IF EXISTS public.profiles;
+DROP TYPE IF EXISTS public.app_role;

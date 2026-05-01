@@ -47,3 +47,19 @@ CREATE POLICY "Allow authenticated users to delete certificate_templates"
 ON public.certificate_templates FOR DELETE
 TO authenticated
 USING (true);
+
+-- DOWN
+DROP POLICY IF EXISTS "Allow authenticated users to delete certificate_templates" ON public.certificate_templates;
+DROP POLICY IF EXISTS "Allow authenticated users to update certificate_templates" ON public.certificate_templates;
+DROP POLICY IF EXISTS "Allow authenticated users to insert certificate_templates" ON public.certificate_templates;
+DROP POLICY IF EXISTS "Allow public read access to certificate_templates" ON public.certificate_templates;
+DROP TABLE IF EXISTS public.certificate_templates;
+ALTER TABLE public.support_materials DROP COLUMN IF EXISTS workshop_id;
+ALTER TABLE public.support_materials DROP COLUMN IF EXISTS activity_id;
+ALTER TABLE public.workshops DROP COLUMN IF EXISTS total_horas;
+ALTER TABLE public.workshops DROP COLUMN IF EXISTS certificates_released;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS total_horas;
+ALTER TABLE public.olympiads DROP COLUMN IF EXISTS certificates_released;
+ALTER TABLE public.attendance DROP COLUMN IF EXISTS workshop_id;
+ALTER TABLE public.attendance DROP COLUMN IF EXISTS activity_id;
+ALTER TABLE public.olympiad_activities DROP COLUMN IF EXISTS total_horas;

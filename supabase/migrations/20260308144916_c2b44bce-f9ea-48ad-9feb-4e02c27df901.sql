@@ -10,7 +10,12 @@ BEGIN
   IF NEW.email = 'joaovpascon@gmail.com' THEN
     INSERT INTO public.user_roles (user_id, role)
     VALUES (NEW.id, 'admin')
-    ON CONFLICT (user_id, role) DO NOTHING;
+ON CONFLICT (user_id, role) DO NOTHING;
+
+-- DOWN
+DELETE FROM public.user_roles WHERE user_id IN (SELECT id FROM public.profiles WHERE email = 'joaovpascon@gmail.com') AND role = 'admin';
+DROP TRIGGER IF EXISTS trg_assign_admin ON public.profiles;
+DROP FUNCTION IF EXISTS public.assign_admin_on_signup();
   END IF;
   RETURN NEW;
 END;

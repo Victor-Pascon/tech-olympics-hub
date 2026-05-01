@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   LayoutDashboard, BookOpen, MapPin, FileText, User,
-  Calendar, Clock, GraduationCap, Download, Trophy, Target, Award, Mic, Eye, EyeOff, Check, X as XIcon, Medal, Crown
+  Calendar, Clock, GraduationCap, Download, Trophy, Target, Award, Mic, Eye, EyeOff, Check, X as XIcon, Medal, Crown, History
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +27,7 @@ const PARTICIPANT_TAB_ITEMS = [
   { value: "materials", label: "Materiais", icon: FileText },
   { value: "certificates", label: "Certificados", icon: Award },
   { value: "ranking", label: "Ranking", icon: Medal },
+  { value: "history", label: "Histórico", icon: History },
   { value: "profile", label: "Perfil", icon: User },
 ];
 
@@ -321,8 +322,26 @@ const ParticipantDashboard = () => {
   if (loading) {
     return (
       <Layout hideFooter>
-        <div className="hero-bg min-h-[calc(100vh-4rem)] flex items-center justify-center">
-          <p className="text-white">Carregando...</p>
+        <div className="hero-bg min-h-[calc(100vh-4rem)]">
+          <div className="container py-8">
+            <div className="mb-6">
+              <div className="h-8 w-64 bg-muted/20 rounded animate-pulse mb-2" />
+              <div className="h-4 w-48 bg-muted/20 rounded animate-pulse" />
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="card-cyber border-0 p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-muted/20 animate-pulse" />
+                    <div className="space-y-2">
+                      <div className="h-3 w-24 bg-muted/20 rounded animate-pulse" />
+                      <div className="h-6 w-12 bg-muted/20 rounded animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </Layout>
     );
@@ -501,10 +520,17 @@ const ParticipantDashboard = () => {
             <TabsList className="mb-6 hidden flex-wrap gap-1 bg-muted/10 md:flex">
               {PARTICIPANT_TAB_ITEMS.map((item) => {
                 const Icon = item.icon;
+                const isCertificateTab = item.value === "certificates";
+                const certCount = availableCertificates.length;
                 return (
-                  <TabsTrigger key={item.value} value={item.value} className="gap-1.5">
+                  <TabsTrigger key={item.value} value={item.value} className="gap-1.5 relative">
                     <Icon className="h-4 w-4" />
                     {item.label}
+                    {isCertificateTab && certCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground px-1">
+                        {certCount}
+                      </span>
+                    )}
                   </TabsTrigger>
                 );
               })}
@@ -822,6 +848,135 @@ const ParticipantDashboard = () => {
             {/* Ranking */}
             <TabsContent value="ranking">
               <ParticipantRankingView enrolledOlympiadIds={enrolledOlympiadIds} enrolledModalityIds={enrolledModalityIds} olympiads={olympiads} activities={activities} />
+            </TabsContent>
+
+            {/* History */}
+            <TabsContent value="history">
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <History className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-display font-semibold text-white">Meu Histórico</h3>
+                </div>
+
+                {/* Enrollments Timeline */}
+                {enrollments.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-display font-semibold text-muted-foreground uppercase tracking-wider">Inscrições em Olimpíadas</h4>
+                    <div className="relative space-y-0">
+                      {enrollments.map((enr, idx) => {
+                        const oly = olympiads.find(o => o.id === enr.olympiad_id);
+                        const act = activities.find(a => a.id === enr.activity_id);
+                        return (
+                          <div key={enr.id} className="flex gap-4 pb-6 relative">
+                            {idx < enrollments.length - 1 && (
+                              <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-primary/20" />
+                            )}
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 border border-primary/30">
+                              <div className="h-2 w-2 rounded-full bg-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-white">{oly?.nome || "Olimpíada"}</p>
+                              {act && <p className="text-xs text-accent">Modalidade: {act.nome}</p>}
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(enr.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </div>
+                            <Badge variant="outline" className="text-xs shrink-0">Inscrição</Badge>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Workshops Timeline */}
+                {enrolledWorkshopIds.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-display font-semibold text-muted-foreground uppercase tracking-wider">Inscrições em Oficinas</h4>
+                    <div className="relative space-y-0">
+                      {workshops.filter(w => enrolledWorkshopIds.includes(w.id)).map((ws, idx, arr) => (
+                        <div key={ws.id} className="flex gap-4 pb-6 relative">
+                          {idx < arr.length - 1 && (
+                            <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-secondary/20" />
+                          )}
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary/20 border border-secondary/30">
+                            <div className="h-2 w-2 rounded-full bg-secondary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white">{ws.nome}</p>
+                            <p className="text-xs text-muted-foreground">{ws.professor || "Professor"}</p>
+                          </div>
+                          <Badge variant="outline" className="text-xs shrink-0">Oficina</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Lectures Timeline */}
+                {enrolledLectureIds.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-display font-semibold text-muted-foreground uppercase tracking-wider">Inscrições em Palestras</h4>
+                    <div className="relative space-y-0">
+                      {lectures.filter(l => enrolledLectureIds.includes(l.id)).map((lec, idx, arr) => (
+                        <div key={lec.id} className="flex gap-4 pb-6 relative">
+                          {idx < arr.length - 1 && (
+                            <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-purple-500/20" />
+                          )}
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-500/20 border border-purple-500/30">
+                            <div className="h-2 w-2 rounded-full bg-purple-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white">{lec.nome}</p>
+                            <p className="text-xs text-muted-foreground">{lec.local || "Local a definir"}</p>
+                          </div>
+                          <Badge variant="outline" className="text-xs shrink-0">Palestra</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Attendance Timeline */}
+                {attendance.filter(a => a.presente).length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-display font-semibold text-muted-foreground uppercase tracking-wider">Presenças Registradas</h4>
+                    <div className="relative space-y-0">
+                      {attendance.filter(a => a.presente).map((att, idx, arr) => {
+                        const oly = olympiads.find(o => o.id === att.olympiad_id);
+                        const ws = workshops.find(w => w.id === att.workshop_id);
+                        const lec = lectures.find(l => l.id === att.lecture_id);
+                        const nome = oly?.nome || ws?.nome || lec?.nome || "Evento";
+                        const tipo = ws ? "Oficina" : lec ? "Palestra" : "Olimpíada";
+                        return (
+                          <div key={att.id} className="flex gap-4 pb-6 relative">
+                            {idx < arr.length - 1 && (
+                              <div className="absolute left-[11px] top-6 bottom-0 w-0.5 bg-primary/20" />
+                            )}
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500/20 border border-green-500/30">
+                              <div className="h-2 w-2 rounded-full bg-green-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-white">{nome}</p>
+                              <p className="text-xs text-green-400">Presença Confirmada</p>
+                              <p className="text-xs text-muted-foreground">{att.data ? new Date(att.data + "T12:00").toLocaleDateString("pt-BR") : ""}</p>
+                            </div>
+                            <Badge className="text-xs shrink-0 bg-green-500/20 text-green-400 border-green-500/30">{tipo}</Badge>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {enrollments.length === 0 && enrolledWorkshopIds.length === 0 && enrolledLectureIds.length === 0 && attendance.filter(a => a.presente).length === 0 && (
+                  <Card className="card-cyber border-0 p-8 text-center">
+                    <History className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-muted-foreground">Nenhum registro de atividade encontrado.</p>
+                    <p className="text-xs text-muted-foreground mt-2">Participe de olimpíadas, oficinas ou palestras para ver seu histórico.</p>
+                  </Card>
+                )}
+              </div>
             </TabsContent>
 
             {/* Profile */}

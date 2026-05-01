@@ -9,3 +9,8 @@ ALTER TABLE public.olympiad_enrollments DROP CONSTRAINT IF EXISTS olympiad_enrol
 -- Add a new unique constraint that includes the activity_id, 
 -- allowing the user to register for multiple modalities in the same Olympiad.
 ALTER TABLE public.olympiad_enrollments ADD CONSTRAINT olympiad_enrollments_user_id_olympiad_id_activity_id_key UNIQUE (user_id, olympiad_id, activity_id);
+
+-- DOWN
+ALTER TABLE public.olympiad_enrollments DROP CONSTRAINT IF EXISTS olympiad_enrollments_user_id_olympiad_id_activity_id_key;
+ALTER TABLE public.olympiad_enrollments ADD CONSTRAINT olympiad_enrollments_user_id_olympiad_id_key UNIQUE (user_id, olympiad_id);
+ALTER TABLE public.olympiad_enrollments DROP COLUMN IF EXISTS activity_id;

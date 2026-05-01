@@ -26,3 +26,9 @@ CREATE POLICY "Users can delete their own olympiad enrollments"
     ON public.olympiad_enrollments
     FOR DELETE
     USING (auth.uid() = user_id OR public.has_role('admin', auth.uid()));
+
+-- DOWN
+DROP POLICY IF EXISTS "Users can delete their own olympiad enrollments" ON public.olympiad_enrollments;
+DROP POLICY IF EXISTS "Users can insert their own olympiad enrollments" ON public.olympiad_enrollments;
+DROP POLICY IF EXISTS "Users can view their own olympiad enrollments" ON public.olympiad_enrollments;
+DROP TABLE IF EXISTS public.olympiad_enrollments;

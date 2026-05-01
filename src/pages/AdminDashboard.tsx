@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { LayoutDashboard, Trophy, BookOpen, FileText, BarChart3, Users, Mic, UserCheck, UserCircle, Medal, Award } from "lucide-react";
 import DashboardTab from "@/components/admin/DashboardTab";
 import OlympiadsTab from "@/components/admin/OlympiadsTab";
@@ -49,6 +49,16 @@ const AdminDashboard = () => {
     });
   }, [user, loading, navigate]);
 
+  // Listen for tab changes from header hamburger menu
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent).detail;
+      if (tab) setTab(tab);
+    };
+    window.addEventListener("admin-tab-change", handler);
+    return () => window.removeEventListener("admin-tab-change", handler);
+  }, []);
+
   if (loading || !authorized) {
     return (
       <Layout>
@@ -62,40 +72,22 @@ const AdminDashboard = () => {
   return (
     <Layout hideFooter>
       <div className="hero-bg min-h-[calc(100vh-4rem)]">
-        <div className="container py-8">
-          <div className="mb-6">
-            <h1 className="font-display text-2xl font-bold text-primary-foreground">
-              Painel <span className="text-primary">Administrativo</span>
-            </h1>
-            <p className="text-sm text-muted-foreground">Gerencie olimpíadas, oficinas, palestras, postagens e relatórios</p>
-          </div>
-
+        <div className="px-4 py-6 lg:px-8 lg:py-8 max-w-[1600px] mx-auto">
           <Tabs value={tab} onValueChange={setTab}>
             <MobileTabsMenu items={TAB_ITEMS} value={tab} onChange={setTab} title="Painel Admin" />
-            <TabsList className="mb-6 hidden flex-wrap gap-1 bg-muted/10 md:flex">
-              {TAB_ITEMS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <TabsTrigger key={item.value} value={item.value} className="gap-1.5">
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
 
-            <TabsContent value="dashboard"><DashboardTab /></TabsContent>
-            <TabsContent value="olympiads"><OlympiadsTab /></TabsContent>
-            <TabsContent value="workshops"><WorkshopsTab /></TabsContent>
-            <TabsContent value="lectures"><LecturesTab /></TabsContent>
-            <TabsContent value="posts"><PostsTab /></TabsContent>
-            <TabsContent value="materials"><SupportMaterialsTab /></TabsContent>
-            <TabsContent value="certificates"><CertificatesTab /></TabsContent>
-            <TabsContent value="participants"><ParticipantsTab /></TabsContent>
-            <TabsContent value="ranking"><RankingTab /></TabsContent>
-            <TabsContent value="reports"><ReportsTab /></TabsContent>
-            <TabsContent value="users"><UsersTab /></TabsContent>
-            <TabsContent value="myaccount"><MyAccountTab /></TabsContent>
+            <TabsContent value="dashboard" className="mt-0"><DashboardTab /></TabsContent>
+            <TabsContent value="olympiads" className="mt-0"><OlympiadsTab /></TabsContent>
+            <TabsContent value="workshops" className="mt-0"><WorkshopsTab /></TabsContent>
+            <TabsContent value="lectures" className="mt-0"><LecturesTab /></TabsContent>
+            <TabsContent value="posts" className="mt-0"><PostsTab /></TabsContent>
+            <TabsContent value="materials" className="mt-0"><SupportMaterialsTab /></TabsContent>
+            <TabsContent value="certificates" className="mt-0"><CertificatesTab /></TabsContent>
+            <TabsContent value="participants" className="mt-0"><ParticipantsTab /></TabsContent>
+            <TabsContent value="ranking" className="mt-0"><RankingTab /></TabsContent>
+            <TabsContent value="reports" className="mt-0"><ReportsTab /></TabsContent>
+            <TabsContent value="users" className="mt-0"><UsersTab /></TabsContent>
+            <TabsContent value="myaccount" className="mt-0"><MyAccountTab /></TabsContent>
           </Tabs>
         </div>
       </div>

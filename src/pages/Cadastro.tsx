@@ -120,6 +120,20 @@ const Cadastro = () => {
       return;
     }
     setLoading(true);
+
+    // Verifica CPF duplicado
+    const { data: cpfExists } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("cpf", form.cpf)
+      .maybeSingle();
+    if (cpfExists) {
+      setLoading(false);
+      setErrors((prev) => ({ ...prev, cpf: "CPF já cadastrado." }));
+      toast({ title: "Erro", description: "Este CPF já está cadastrado no sistema.", variant: "destructive" });
+      return;
+    }
+
     const { data, error } = await supabase.auth.signUp({ email: form.email, password: form.senha });
     if (error) {
       setLoading(false);

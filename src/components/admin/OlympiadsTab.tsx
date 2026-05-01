@@ -58,8 +58,12 @@ const OlympiadsTab = () => {
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    const { data } = await supabase.from("olympiads").select("*").order("created_at", { ascending: false });
-    if (data) setOlympiads(data as any);
+    const { data, error } = await supabase.from("olympiads").select("*").order("created_at", { ascending: false });
+    if (error) console.error("[OlympiadsTab] load error:", error);
+    if (data) {
+      console.log("[OlympiadsTab] loaded olympiads count:", data.length, data);
+      setOlympiads(data as any);
+    }
   };
 
   const openNew = () => { setForm(emptyForm); setActivities([]); setEditing(null); setOpen(true); };
@@ -163,33 +167,56 @@ const OlympiadsTab = () => {
   };
 
   const loadParticipants = async (olympiadId: string, actIdFilter: string = "all") => {
-    let query = supabase.from("olympiad_enrollments").select("user_id, activity_id, olympiad_activities(nome)").eq("olympiad_id", olympiadId);
+    // Busca TODAS as inscrições da olimpíada
+    const { data: allEnrollments, error: enrollError } = await supabase
+      .from("olympiad_enrollments")
+      .select("user_id, activity_id, olympiad_activities(nome)")
+      .eq("olympiad_id", olympiadId);
+
+    console.log("[OlympiadsTab] all enrollments:", allEnrollments, "error:", enrollError);
+
+    if (!allEnrollments?.length) { setParticipants([]); return; }
+
+    // Filtra inscrições conforme o filtro selecionado
+    let filteredEnrollments = allEnrollments;
     if (actIdFilter !== "all" && actIdFilter) {
-      query = query.eq("activity_id", actIdFilter);
+      // Modalidade específica: apenas alunos inscritos NESSA modalidade
+      filteredEnrollments = allEnrollments.filter(e => e.activity_id === actIdFilter);
     }
-    const { data: enrollments } = await query;
 
-    if (!enrollments?.length) { setParticipants([]); return; }
+    console.log("[OlympiadsTab] filtered enrollments (filter=", actIdFilter, "):", filteredEnrollments);
 
-    const userIds = [...new Set(enrollments.map(e => e.user_id))];
-    const { data: profiles } = await supabase.from("profiles").select("id, nome, email").in("id", userIds);
-    
-    // Fetch attendance for this olympiad
-    const { data: attendance } = await supabase.from("attendance").select("*").eq("olympiad_id", olympiadId).in("user_id", userIds);
+    if (!filteredEnrollments.length) { setParticipants([]); return; }
 
-    // If filtering by activity, we should only show the row for that activity.
-    // Otherwise, we group by user and show all modalities, and general attendance.
+    const userIds = [...new Set(filteredEnrollments.map(e => e.user_id))];
+    const { data: profiles, error: profError } = await supabase.from("profiles").select("id, nome, email").in("id", userIds);
+    console.log("[OlympiadsTab] profiles:", profiles, "error:", profError);
+
+    const { data: attendance, error: attError } = await supabase.from("attendance").select("*").eq("olympiad_id", olympiadId).in("user_id", userIds);
+    console.log("[OlympiadsTab] attendance:", attendance, "error:", attError);
+
     if (actIdFilter !== "all") {
+      const actName = currentOlympiadActivities.find(a => a.id === actIdFilter)?.nome || "Específica";
       setParticipants((profiles || []).map(p => {
         const att = attendance?.find(a => a.user_id === p.id && a.activity_id === actIdFilter);
-        const actName = currentOlympiadActivities.find(a => a.id === actIdFilter)?.nome || "Específica";
-        return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id, modalidades: actName, activity_id: actIdFilter };
+        return {
+          ...p,
+          user_id: p.id,
+          presente: att?.presente || false,
+          attendance_id: att?.id,
+          modalidades: actName,
+          activity_id: actIdFilter,
+        };
       }));
     } else {
       setParticipants((profiles || []).map(p => {
-        const userEnrolls = enrollments.filter(e => e.user_id === p.id);
-        const modalidades = userEnrolls.map(e => (e.olympiad_activities as any)?.nome).filter(Boolean).join(", ") || "Inscrição Geral";
-        const att = attendance?.find(a => a.user_id === p.id && !a.activity_id); // General attendance
+        const userEnrolls = allEnrollments.filter(e => e.user_id === p.id);
+        const modalidades = userEnrolls
+          .map(e => (e.olympiad_activities as any)?.[0]?.nome)
+          .filter(Boolean)
+          .join(", ") || "Inscrição Geral";
+        const att = attendance?.find(a => a.user_id === p.id && !a.activity_id)
+                  || attendance?.find(a => a.user_id === p.id);
         return { ...p, user_id: p.id, presente: att?.presente || false, attendance_id: att?.id, modalidades, activity_id: null };
       }));
     }

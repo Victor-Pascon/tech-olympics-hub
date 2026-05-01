@@ -53,3 +53,19 @@ CREATE POLICY "Admin can read all profiles" ON public.profiles FOR SELECT TO aut
 
 -- 6. Allow admin to update all profiles (needed for editing participant data)
 CREATE POLICY "Admin can update all profiles" ON public.profiles FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+
+-- DOWN
+DROP POLICY IF EXISTS "Admin can update all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Admin can read all profiles" ON public.profiles;
+ALTER TABLE public.attendance DROP COLUMN IF EXISTS lecture_id;
+DROP POLICY IF EXISTS "Admin view all lecture enrollments" ON public.lecture_enrollments;
+DROP POLICY IF EXISTS "Users can unenroll from lectures" ON public.lecture_enrollments;
+DROP POLICY IF EXISTS "Users can enroll in lectures" ON public.lecture_enrollments;
+DROP POLICY IF EXISTS "Users can view own lecture enrollments" ON public.lecture_enrollments;
+DROP TABLE IF EXISTS public.lecture_enrollments;
+DROP POLICY IF EXISTS "Admin manage lecture_speakers" ON public.lecture_speakers;
+DROP POLICY IF EXISTS "Public read lecture_speakers" ON public.lecture_speakers;
+DROP TABLE IF EXISTS public.lecture_speakers;
+DROP POLICY IF EXISTS "Admin manage lectures" ON public.lectures;
+DROP POLICY IF EXISTS "Public read lectures" ON public.lectures;
+DROP TABLE IF EXISTS public.lectures;

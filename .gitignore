@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# RAG database (versionamento via .opencode/knowledge/)
+.opencode/rag/rag.db

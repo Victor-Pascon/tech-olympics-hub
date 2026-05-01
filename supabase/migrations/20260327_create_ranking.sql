@@ -15,3 +15,8 @@ ALTER TABLE public.olympiad_scores ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public read scores" ON public.olympiad_scores FOR SELECT USING (true);
 CREATE POLICY "Admin manage scores" ON public.olympiad_scores FOR ALL TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+
+-- DOWN
+DROP POLICY IF EXISTS "Admin manage scores" ON public.olympiad_scores;
+DROP POLICY IF EXISTS "Public read scores" ON public.olympiad_scores;
+DROP TABLE IF EXISTS public.olympiad_scores;

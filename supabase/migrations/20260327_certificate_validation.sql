@@ -35,3 +35,9 @@ DROP TRIGGER IF EXISTS tr_attendance_val_code ON public.attendance;
 CREATE TRIGGER tr_attendance_val_code 
 BEFORE INSERT ON public.attendance 
 FOR EACH ROW EXECUTE FUNCTION trg_attendance_val_code();
+
+-- DOWN
+DROP TRIGGER IF EXISTS tr_attendance_val_code ON public.attendance;
+DROP FUNCTION IF EXISTS trg_attendance_val_code;
+DROP FUNCTION IF EXISTS generate_validation_code;
+ALTER TABLE public.attendance DROP COLUMN IF EXISTS validation_code;

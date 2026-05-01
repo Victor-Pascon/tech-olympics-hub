@@ -23,6 +23,8 @@ const ESTADOS_BR = [
   "PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"
 ];
 
+const ITEMS_PER_PAGE = 20;
+
 const ParticipantsTab = () => {
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -38,6 +40,11 @@ const ParticipantsTab = () => {
   const [filterOlympiad, setFilterOlympiad] = useState("all");
   const [filterWorkshop, setFilterWorkshop] = useState("all");
   const [filterLecture, setFilterLecture] = useState("all");
+
+  // Pagination
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedProfiles = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   // Detail dialog
   const [detailProfile, setDetailProfile] = useState<Profile | null>(null);
@@ -98,6 +105,7 @@ const ParticipantsTab = () => {
       result = result.filter(p => userIds.includes(p.id));
     }
     setFiltered(result);
+    setPage(1);
   }, [filterNome, filterCpf, filterOlympiad, filterWorkshop, filterLecture, profiles, enrollments]);
 
   const openDetail = (p: Profile) => {
@@ -238,6 +246,21 @@ const ParticipantsTab = () => {
       </Dialog>
 
       {/* Table */}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs text-muted-foreground">Página {page} de {totalPages}</p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+              Anterior
+            </Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+              Próxima
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Card className="card-cyber border-0 overflow-hidden">
         <Table>
           <TableHeader>
@@ -251,7 +274,7 @@ const ParticipantsTab = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((p) => (
+            {paginatedProfiles.map((p) => (
               <TableRow key={p.id} className="border-primary/5 cursor-pointer hover:bg-muted/10" onClick={() => openDetail(p)}>
                 <TableCell className="font-medium">{p.nome}</TableCell>
                 <TableCell className="text-sm">{p.email}</TableCell>
@@ -265,6 +288,9 @@ const ParticipantsTab = () => {
                 </TableCell>
               </TableRow>
             ))}
+            {filtered.length > 0 && paginatedProfiles.length === 0 && (
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Página sem resultados</TableCell></TableRow>
+            )}
             {filtered.length === 0 && (
               <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum participante encontrado</TableCell></TableRow>
             )}
