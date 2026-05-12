@@ -19,6 +19,11 @@ const Layout = ({ children, hideFooter }: LayoutProps) => {
       <Header />
       <main className="flex-1">{children}</main>
       {!hideFooter && <Footer />}
+      <div className="border-t border-primary/10 bg-background/80 py-2 text-center">
+        <p className="text-[11px] text-muted-foreground/70 tracking-wide">
+          By: <span className="text-primary/80">João Victor A.S Pascon</span>
+        </p>
+      </div>
     </div>
   );
 };
