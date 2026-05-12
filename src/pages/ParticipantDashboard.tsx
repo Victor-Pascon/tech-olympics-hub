@@ -654,7 +654,15 @@ const ParticipantDashboard = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-2 text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-primary" />{ws.data_inicio ? new Date(ws.data_inicio + "T12:00").toLocaleDateString("pt-BR") : 'Data a definir'}</div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5 text-primary" />
+                          {ws.data_inicio
+                            ? `${new Date(ws.data_inicio + "T12:00").toLocaleDateString("pt-BR")}${ws.data_fim && ws.data_fim !== ws.data_inicio ? ` até ${new Date(ws.data_fim + "T12:00").toLocaleDateString("pt-BR")}` : ""}`
+                            : 'Data a definir'}
+                        </div>
+                        {ws.dias_aulas && (
+                          <div className="flex items-start gap-2 text-xs"><Calendar className="h-3.5 w-3.5 text-primary mt-0.5" /><span><span className="text-muted-foreground/70">Aulas:</span> {ws.dias_aulas}</span></div>
+                        )}
                         <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-primary" />{ws.horario || 'Horário a definir'}</div>
                         <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-primary" />{ws.local || 'Local a definir'}</div>
                         
