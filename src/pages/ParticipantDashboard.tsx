@@ -657,7 +657,7 @@ const ParticipantDashboard = () => {
                         <div className="flex items-center gap-2">
                           <Calendar className="h-3.5 w-3.5 text-primary" />
                           {ws.data_inicio
-                            ? `${new Date(ws.data_inicio + "T12:00").toLocaleDateString("pt-BR")}${ws.data_fim && ws.data_fim !== ws.data_inicio ? ` até ${new Date(ws.data_fim + "T12:00").toLocaleDateString("pt-BR")}` : ""}`
+                            ? new Date(ws.data_inicio + "T12:00").toLocaleDateString("pt-BR")
                             : 'Data a definir'}
                         </div>
                         {ws.dias_aulas && (
