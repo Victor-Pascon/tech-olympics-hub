@@ -53,7 +53,7 @@ export type Database = {
           data: string | null
           id: string
           lecture_id: string | null
-          olympiad_id: string
+          olympiad_id: string | null
           presente: boolean | null
           user_id: string
           validation_code: string | null
@@ -65,7 +65,7 @@ export type Database = {
           data?: string | null
           id?: string
           lecture_id?: string | null
-          olympiad_id: string
+          olympiad_id?: string | null
           presente?: boolean | null
           user_id: string
           validation_code?: string | null
@@ -77,7 +77,7 @@ export type Database = {
           data?: string | null
           id?: string
           lecture_id?: string | null
-          olympiad_id?: string
+          olympiad_id?: string | null
           presente?: boolean | null
           user_id?: string
           validation_code?: string | null
