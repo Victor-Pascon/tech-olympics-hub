@@ -579,7 +579,7 @@ const ParticipantDashboard = () => {
                             <div className="space-y-1 mt-2 p-2 bg-muted/20 rounded">
                               <p className="text-sm font-medium text-accent flex items-center gap-1"><Target className="h-3.5 w-3.5" /> Modalidade: {act.nome}</p>
                               <p className="text-xs text-muted-foreground">Local: {act.local_sala || "A definir"}</p>
-                              <p className="text-xs text-muted-foreground">Data: {act.data_atividade ? new Date(act.data_atividade).toLocaleDateString("pt-BR") : "A definir"} {act.horario ? `às ${act.horario}` : ""}</p>
+                              <p className="text-xs text-muted-foreground">Data: {act.data_atividade ? new Date(act.data_atividade + "T12:00").toLocaleDateString("pt-BR") : "A definir"} {act.horario ? `às ${act.horario}` : ""}</p>
                             </div>
                           ) : (
                             <p className="text-sm text-muted-foreground mt-2">Inscrição Geral</p>
@@ -612,7 +612,7 @@ const ParticipantDashboard = () => {
                       </CardHeader>
                       <CardContent className="space-y-4 text-sm text-muted-foreground mt-2 flex-grow flex flex-col justify-between">
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-primary" />{o.data_inicio ? new Date(o.data_inicio).toLocaleDateString("pt-BR") : 'Em breve'}</div>
+                          <div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-primary" />{o.data_inicio ? new Date(o.data_inicio + "T12:00").toLocaleDateString("pt-BR") : 'Em breve'}</div>
                           <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-primary" />{o.local || 'Online/A definir'}</div>
                           <div className="mt-3 text-xs">
                              <span className="font-semibold text-white">Modalidades disponíveis:</span> {OlympiadModalities.length}
@@ -654,7 +654,7 @@ const ParticipantDashboard = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-2 text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-primary" />{ws.data_inicio ? new Date(ws.data_inicio).toLocaleDateString("pt-BR") : 'Data a definir'}</div>
+                        <div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-primary" />{ws.data_inicio ? new Date(ws.data_inicio + "T12:00").toLocaleDateString("pt-BR") : 'Data a definir'}</div>
                         <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-primary" />{ws.horario || 'Horário a definir'}</div>
                         <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-primary" />{ws.local || 'Local a definir'}</div>
                         
@@ -1085,7 +1085,7 @@ const ParticipantDashboard = () => {
                       <div className="flex flex-wrap gap-x-4 gap-y-2 text-muted-foreground">
                         <span className="flex items-center gap-1"><GraduationCap className="h-3.5 w-3.5" /> Resp: {modality.responsavel || "Indefinido"}</span>
                         <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> Local: {modality.local_sala || "A definir"}</span>
-                        <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Data: {modality.data_atividade ? new Date(modality.data_atividade).toLocaleDateString("pt-BR") : "A definir"}</span>
+                        <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Data: {modality.data_atividade ? new Date(modality.data_atividade + "T12:00").toLocaleDateString("pt-BR") : "A definir"}</span>
                         <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Hora: {modality.horario || "A definir"}</span>
                       </div>
                       
