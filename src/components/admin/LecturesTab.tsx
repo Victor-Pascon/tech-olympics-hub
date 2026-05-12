@@ -132,10 +132,15 @@ const LecturesTab = () => {
   };
 
   const togglePresence = async (userId: string, lectureId: string, currentPresent: boolean, attendanceId?: string) => {
+    let error: any = null;
     if (attendanceId) {
-      await supabase.from("attendance").update({ presente: !currentPresent }).eq("id", attendanceId);
+      ({ error } = await supabase.from("attendance").update({ presente: !currentPresent }).eq("id", attendanceId));
     } else {
-      await supabase.from("attendance").insert({ user_id: userId, lecture_id: lectureId, olympiad_id: "00000000-0000-0000-0000-000000000000", presente: true } as any);
+      ({ error } = await supabase.from("attendance").insert({ user_id: userId, lecture_id: lectureId, olympiad_id: null, presente: true } as any));
+    }
+    if (error) {
+      toast({ title: "Erro ao registrar presença", description: error.message, variant: "destructive" });
+      return;
     }
     const l = lectures.find(lec => lec.id === lectureId);
     if (l) await loadParticipants(l);
