@@ -35,7 +35,17 @@ const AdminLogin = () => {
     const { data: roleData, error: roleError } = await supabase
       .rpc("has_role", { _user_id: data.user.id, _role: "admin" });
 
-    if (roleError || !roleData) {
+    if (roleError) {
+      setLoading(false);
+      toast({
+        title: "Falha temporária",
+        description: "Não foi possível validar suas permissões agora. Tente novamente em alguns segundos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!roleData) {
       await supabase.auth.signOut();
       setLoading(false);
       toast({
