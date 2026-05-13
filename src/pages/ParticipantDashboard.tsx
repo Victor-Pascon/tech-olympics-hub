@@ -427,19 +427,23 @@ const ParticipantDashboard = () => {
 <html><head><title>Certificado - ${cert.nome}</title>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
   html, body { width:100%; height:100%; }
   body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:#1a1a2e; font-family:'Inter',sans-serif; }
-  @media print { body { background:none; margin:0; } @page { size:A4 landscape; margin:0; } }
+  @media print { body { background:#fff; margin:0; } @page { size:A4 landscape; margin:0; } }
   .cert {
     position:relative;
     width: 1600px; height: 1131px;
-    background: url('${bgUrl}') center/100% 100% no-repeat;
-    background-color:#fff;
+    background:#fff;
+    overflow:hidden;
   }
-  @media print { .cert { width:100vw; height:100vh; } }
+  .cert-bg {
+    position:absolute; inset:0; width:100%; height:100%; object-fit:fill;
+    z-index:0; pointer-events:none; user-select:none;
+  }
+  @media print { .cert { width:100vw; height:100vh; page-break-after:avoid; } }
   .cert-name {
-    position:absolute; left:18%; right:18%; top:36.5%;
+    position:absolute; left:18%; right:18%; top:36.5%; z-index:2;
     text-align:center;
     font-family:'Great Vibes', cursive;
     font-size:64px; color:#1a2b5c;
@@ -447,37 +451,37 @@ const ParticipantDashboard = () => {
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .cert-body {
-    position:absolute; left:14%; right:14%; top:46%;
+    position:absolute; left:14%; right:14%; top:46%; z-index:2;
     text-align:center;
     font-family:'Inter', sans-serif;
     font-size:22px; color:#1a2b5c;
     line-height:1.7; font-weight:500;
   }
   .cert-code {
-    position:absolute; bottom:1.2%; right:2%;
+    position:absolute; bottom:1.2%; right:2%; z-index:2;
     font-family: 'Courier New', monospace;
     font-size:11px; color:#1a2b5c; opacity:0.75;
     letter-spacing:1px;
   }
   .cert-date {
-    position:absolute; bottom:1.2%; left:2%;
+    position:absolute; bottom:1.2%; left:2%; z-index:2;
     font-family:'Inter',sans-serif;
     font-size:11px; color:#1a2b5c; opacity:0.75;
   }
 </style></head>
 <body>
 <div class="cert">
+  <img class="cert-bg" src="${bgUrl}" alt="" />
   <div class="cert-name">${nomeAluno}</div>
   <div class="cert-body">${texto}</div>
   <div class="cert-date">Emitido em ${new Date().toLocaleDateString("pt-BR")}</div>
   <div class="cert-code">Validação: ${formattedCode}</div>
 </div>
 <script>
-  // Aguarda o background carregar antes de imprimir
-  const img = new Image();
-  img.onload = () => setTimeout(() => window.print(), 400);
-  img.onerror = () => setTimeout(() => window.print(), 800);
-  img.src = '${bgUrl}';
+  const bg = document.querySelector('.cert-bg');
+  const doPrint = () => setTimeout(() => window.print(), 600);
+  if (bg.complete && bg.naturalWidth > 0) doPrint();
+  else { bg.onload = doPrint; bg.onerror = doPrint; }
 </script>
 </body></html>`;
     pw.document.write(html);
