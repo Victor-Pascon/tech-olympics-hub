@@ -25,11 +25,17 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate("/admin-login"); return; }
-    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
-      if (!data) navigate("/admin-login");
-      else setAuthorized(true);
+    if (authorized) return;
+    let cancelled = false;
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data, error }) => {
+      if (cancelled) return;
+      // Em caso de erro transitório (ex.: 429), não desloga — apenas mantém aguardando
+      if (error) return;
+      if (data) setAuthorized(true);
+      else navigate("/admin-login");
     });
-  }, [user, loading, navigate]);
+    return () => { cancelled = true; };
+  }, [user?.id, loading, navigate, authorized]);
 
   // Listen for tab changes from header hamburger menu
   useEffect(() => {
