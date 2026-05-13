@@ -404,95 +404,81 @@ const ParticipantDashboard = () => {
   });
 
   const printCertificate = (cert: any) => {
-    const template = templates.length > 0 ? templates[0] : { cor_primaria: "#00ffcc", logo_url: "", texto_padrao: "Certificamos que [NOME_ALUNO] participou do evento [NOME_CURSO] na modalidade [NOME_MODALIDADE], totalizando [HORAS] horas de atividades." };
-    
+    const template = templates.length > 0 ? templates[0] : { texto_padrao: "Certificamos que [NOME_ALUNO] participou do evento [NOME_CURSO] na modalidade [NOME_MODALIDADE], totalizando [HORAS] horas de atividades." } as any;
+
+    const nomeAluno = profile?.nome || "Participante";
     let texto = (template.texto_padrao || "Certificamos que [NOME_ALUNO] participou do evento [NOME_CURSO] na modalidade [NOME_MODALIDADE], totalizando [HORAS] horas de atividades.");
-    texto = texto.replace(/\[NOME_ALUNO\]/g, profile?.nome || "Participante");
+    // Remove a abertura "Certificamos que [NOME_ALUNO]" — já está no template visual
+    texto = texto.replace(/^\s*Certificamos que\s*\[NOME_ALUNO\][,\s]*/i, "");
+    texto = texto.replace(/\[NOME_ALUNO\]/g, nomeAluno);
     texto = texto.replace(/\[NOME_CURSO\]/g, cert.nome || "");
     texto = texto.replace(/\[NOME_MODALIDADE\]/g, cert.modalidade || cert.tipo || "");
     texto = texto.replace(/\[HORAS\]/g, String(cert.horas || 0));
+    // Capitaliza primeira letra
+    texto = texto.charAt(0).toUpperCase() + texto.slice(1);
 
-    // Use the stored validation code from DB
     const formattedCode = cert.validation_code || "SEM-CODIGO";
-
-    const primaryColor = template.cor_primaria || "#00ffcc";
+    const bgUrl = `${window.location.origin}/certificate-template.png`;
 
     const pw = window.open("", "_blank");
     if (!pw) return;
 
     const html = `<!DOCTYPE html>
 <html><head><title>Certificado - ${cert.nome}</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; }
   body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:#1a1a2e; font-family:'Inter',sans-serif; }
-  @media print { body { background:none; } @page { size:landscape; margin:0; } }
+  @media print { body { background:none; margin:0; } @page { size:A4 landscape; margin:0; } }
   .cert {
-    width:1120px; height:790px; background:#fff; position:relative; overflow:hidden;
-    border:8px solid ${primaryColor}; box-shadow:inset 0 0 0 3px #fff, inset 0 0 0 5px ${primaryColor}33;
+    position:relative;
+    width: 1600px; height: 1131px;
+    background: url('${bgUrl}') center/100% 100% no-repeat;
+    background-color:#fff;
   }
-  .cert-inner { padding:50px 70px 40px; height:100%; display:flex; flex-direction:column; }
-  .cert-watermark {
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    opacity:0.04; width:400px; height:400px; pointer-events:none;
-    ${template.logo_url ? `background:url('${template.logo_url}') center/contain no-repeat;` : ""}
+  @media print { .cert { width:100vw; height:100vh; } }
+  .cert-name {
+    position:absolute; left:18%; right:18%; top:36.5%;
+    text-align:center;
+    font-family:'Great Vibes', cursive;
+    font-size:64px; color:#1a2b5c;
+    line-height:1;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .cert-corner { position:absolute; width:60px; height:60px; border:3px solid ${primaryColor}44; }
-  .ct { top:15px; left:15px; border-right:none; border-bottom:none; }
-  .cr { top:15px; right:15px; border-left:none; border-bottom:none; }
-  .cb { bottom:15px; left:15px; border-right:none; border-top:none; }
-  .cd { bottom:15px; right:15px; border-left:none; border-top:none; }
-  .cert-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .cert-logo { height:70px; max-width:200px; object-fit:contain; }
-  .cert-header-text { text-align:right; font-size:11px; color:#888; line-height:1.5; }
-  .cert-divider { height:2px; background:linear-gradient(90deg,transparent,${primaryColor},transparent); margin:15px 0; }
-  .cert-title {
-    font-family:'Playfair Display',serif; font-size:38px; font-weight:700;
-    color:${primaryColor}; text-align:center; letter-spacing:4px; text-transform:uppercase; margin:15px 0 5px;
+  .cert-body {
+    position:absolute; left:14%; right:14%; top:46%;
+    text-align:center;
+    font-family:'Inter', sans-serif;
+    font-size:22px; color:#1a2b5c;
+    line-height:1.7; font-weight:500;
   }
-  .cert-subtitle { font-size:14px; color:#777; text-align:center; letter-spacing:2px; margin-bottom:20px; }
-  .cert-recipient {
-    font-family:'Playfair Display',serif; font-size:28px; font-weight:700;
-    text-align:center; color:#222; margin:10px 0 5px; border-bottom:2px solid ${primaryColor}44; padding-bottom:8px;
-    display:inline-block; margin-left:auto; margin-right:auto;
+  .cert-code {
+    position:absolute; bottom:1.2%; right:2%;
+    font-family: 'Courier New', monospace;
+    font-size:11px; color:#1a2b5c; opacity:0.75;
+    letter-spacing:1px;
   }
-  .cert-recipient-wrap { text-align:center; }
-  .cert-body { font-size:14px; line-height:1.9; color:#444; text-align:center; margin:15px 40px; flex:1; }
-  .cert-footer { display:flex; justify-content:space-around; align-items:flex-end; margin-top:auto; padding-top:15px; }
-  .cert-sig { text-align:center; width:220px; }
-  .cert-sig-line { border-top:1px solid #333; padding-top:6px; font-size:12px; color:#333; font-weight:500; }
-  .cert-sig-role { font-size:10px; color:#777; margin-top:2px; }
-  .cert-meta { display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:8px; border-top:1px solid #eee; }
-  .cert-date { font-size:10px; color:#999; }
-  .cert-code { font-family:monospace; font-size:11px; color:${primaryColor}; background:${primaryColor}11; padding:4px 10px; border-radius:4px; letter-spacing:1px; font-weight:600; }
-  .cert-code-label { font-size:9px; color:#999; margin-bottom:2px; display:block; }
+  .cert-date {
+    position:absolute; bottom:1.2%; left:2%;
+    font-family:'Inter',sans-serif;
+    font-size:11px; color:#1a2b5c; opacity:0.75;
+  }
 </style></head>
 <body>
 <div class="cert">
-  <div class="cert-corner ct"></div><div class="cert-corner cr"></div>
-  <div class="cert-corner cb"></div><div class="cert-corner cd"></div>
-  <div class="cert-watermark"></div>
-  <div class="cert-inner">
-    <div class="cert-header">
-      ${template.logo_url ? `<img src="${template.logo_url}" class="cert-logo" />` : '<div></div>'}
-      <div class="cert-header-text">Tech Olympics Hub<br/>Plataforma de Eventos</div>
-    </div>
-    <div class="cert-divider"></div>
-    <div class="cert-title">Certificado</div>
-    <div class="cert-subtitle">ESTE CERTIFICADO É CONFERIDO A</div>
-    <div class="cert-recipient-wrap"><span class="cert-recipient">${profile?.nome || "Participante"}</span></div>
-    <div class="cert-body">${texto}</div>
-    <div class="cert-footer">
-      <div class="cert-sig"><div class="cert-sig-line">Coordenação Geral</div><div class="cert-sig-role">Organização do Evento</div></div>
-      <div class="cert-sig"><div class="cert-sig-line">Diretoria Tech Olympics</div><div class="cert-sig-role">Responsável Institucional</div></div>
-    </div>
-    <div class="cert-meta">
-      <div class="cert-date">Emitido em ${new Date().toLocaleDateString("pt-BR")} via Plataforma Tech Olympics Hub</div>
-      <div><span class="cert-code-label">Código de Validação</span><span class="cert-code">${formattedCode}</span></div>
-    </div>
-  </div>
+  <div class="cert-name">${nomeAluno}</div>
+  <div class="cert-body">${texto}</div>
+  <div class="cert-date">Emitido em ${new Date().toLocaleDateString("pt-BR")}</div>
+  <div class="cert-code">Validação: ${formattedCode}</div>
 </div>
-<script>window.onload=()=>{setTimeout(()=>window.print(),600)}</script>
+<script>
+  // Aguarda o background carregar antes de imprimir
+  const img = new Image();
+  img.onload = () => setTimeout(() => window.print(), 400);
+  img.onerror = () => setTimeout(() => window.print(), 800);
+  img.src = '${bgUrl}';
+</script>
 </body></html>`;
     pw.document.write(html);
     pw.document.close();
